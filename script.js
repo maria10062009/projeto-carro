@@ -1,260 +1,556 @@
-// script.js - Lógica da Garagem Virtual Interativa
-"use strict";
+/* ==========================================================================
+   CLASSES DOS VEÍCULOS (Definição dos "Modelos" ou "Plantas")
+   ========================================================================== */
 
-// --- Classes (Manutencao, Veiculo, Carro, CarroEsportivo, Caminhao) ---
-// (Colar as definições das classes da resposta anterior aqui - elas não precisam mudar)
-// --- Classe Manutencao ---
-class Manutencao {
-    constructor(data, tipo, custo, descricao = '') { this.data = data; this.tipo = tipo.trim(); this.custo = parseFloat(custo); this.descricao = descricao.trim(); this.id = `m_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`; }
-    validar() { const dataObj = new Date(this.data + 'T00:00:00'); const dataValida = dataObj instanceof Date && !isNaN(dataObj.getTime()); const tipoValido = typeof this.tipo === 'string' && this.tipo !== ''; const custoValido = typeof this.custo === 'number' && isFinite(this.custo) && this.custo >= 0; return dataValida && tipoValido && custoValido; }
-    formatarData() { try { const dataObj = new Date(this.data + 'T00:00:00'); return new Intl.DateTimeFormat(navigator.language || 'pt-BR').format(dataObj); } catch (e) { console.error("Erro ao formatar data:", this.data, e); return "Data inválida"; } }
-    formatar() { if (!this.validar()) { return "<span style='color: red;'>Registro Inválido</span>"; } const custoFormatado = this.custo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); let str = `<strong>${this.tipo}</strong> em ${this.formatarData()} - ${custoFormatado}`; if (this.descricao) { str += ` <small><i>(${this.descricao})</i></small>`; } return str; }
-    toJSON() { return { data: this.data, tipo: this.tipo, custo: this.custo, descricao: this.descricao, id: this.id }; }
-    static fromJSON(json) { if (!json || typeof json !== 'object') return null; const m = new Manutencao(json.data, json.tipo, json.custo, json.descricao); m.id = json.id || m.id; return m.validar() ? m : null; }
+// --- CLASSE PAI (SUPERCLASSE) ---
+class Carro {
+    // Atributos (Características) que todo Carro terá
+    modelo;
+    cor;
+    ligado; // boolean: true se está ligado, false se desligado
+    velocidade; // number: velocidade atual em km/h
+    velocidadeMaxima; // number: velocidade máxima que este carro pode atingir
+
+    // Método CONSTRUTOR: Chamado automaticamente quando criamos um novo objeto Carro (usando 'new')
+    // Recebe os valores iniciais para os atributos.
+    constructor(modelo, cor, velocidadeMaxima = 180) { // velocidadeMaxima tem um valor padrão 180
+        this.modelo = modelo; // 'this' se refere ao objeto específico que está sendo criado
+        this.cor = cor;
+        this.velocidadeMaxima = velocidadeMaxima;
+
+        // Valores iniciais padrão
+        this.ligado = false; // Todo carro começa desligado
+        this.velocidade = 0;   // Todo carro começa parado
+
+        // Apenas uma mensagem no console para sabermos que foi criado
+        console.log(`LOG: Carro base ${this.modelo} (${this.cor}) criado. Vel Max: ${this.velocidadeMaxima} km/h.`);
+    }
+
+    // --- MÉTODOS (Ações / Comportamentos) ---
+
+    ligar() {
+        // Verificação: Só liga se estiver desligado
+        if (this.ligado) {
+            this.alerta("O carro já está ligado."); // Mostra alerta para o usuário
+            return; // Sai do método, não faz mais nada
+        }
+        this.ligado = true; // Muda o estado do atributo 'ligado'
+        console.log(`LOG: ${this.modelo}: Carro ligado.`);
+        this.atualizarDisplayGeral(); // Pede para atualizar a tela
+    }
+
+    desligar() {
+        // Verificação: Só desliga se estiver ligado
+        if (!this.ligado) {
+            this.alerta("O carro já está desligado.");
+            return;
+        }
+        // Verificação extra: Não desliga em movimento
+        if (this.velocidade > 0) {
+            this.alerta("Impossível desligar em movimento! Freie o carro primeiro.");
+            return;
+        }
+        this.ligado = false;
+        console.log(`LOG: ${this.modelo}: Carro desligado.`);
+        this.atualizarDisplayGeral();
+    }
+
+    acelerar(incremento = 10) { // Parâmetro opcional 'incremento', padrão 10
+        // Verificação: Só acelera se estiver ligado
+        if (!this.ligado) {
+            this.alerta("Ligue o carro antes de acelerar!");
+            return;
+        }
+        // Verificação: Não acelera além da velocidade máxima
+        if (this.velocidade >= this.velocidadeMaxima) {
+            this.alerta("Velocidade máxima já atingida!");
+            // Garante que a velocidade não ultrapasse, caso haja alguma inconsistência
+            this.velocidade = this.velocidadeMaxima;
+            this.atualizarDisplayGeral(); // Atualiza mesmo se não acelerou, para corrigir a barra
+            return;
+        }
+
+        // Aumenta a velocidade
+        this.velocidade += incremento;
+
+        // Limita à velocidade máxima caso o incremento ultrapasse
+        if (this.velocidade > this.velocidadeMaxima) {
+            this.velocidade = this.velocidadeMaxima;
+        }
+
+        console.log(`LOG: ${this.modelo}: Acelerando para ${this.velocidade.toFixed(0)} km/h.`);
+        this.atualizarDisplayGeral();
+    }
+
+    frear(decremento = 20) { // Parâmetro opcional 'decremento', padrão 20
+        // Verificação: Só freia se estiver em movimento
+        if (this.velocidade === 0) {
+            this.alerta("O carro já está parado.");
+            return;
+        }
+
+        // Diminui a velocidade
+        this.velocidade -= decremento;
+
+        // Garante que a velocidade não fique negativa
+        if (this.velocidade < 0) {
+            this.velocidade = 0;
+        }
+
+        console.log(`LOG: ${this.modelo}: Freando para ${this.velocidade.toFixed(0)} km/h.`);
+        this.atualizarDisplayGeral();
+    }
+
+    // --- MÉTODO PARA DEMONSTRAR POLIMORFISMO ---
+    // Este método será chamado para mostrar as informações na tela.
+    // As classes filhas (CarroEsportivo, Caminhao) vão REESCREVER (sobrescrever) este método
+    // para adicionar suas informações específicas.
+    exibirInformacoes() {
+        // Determina o texto e a classe CSS para o status (Ligado/Desligado)
+        const statusTexto = this.ligado ? 'Ligado' : 'Desligado';
+        const statusClass = this.ligado ? 'status-ligado' : 'status-desligado'; // Usado pelo CSS
+
+        // Retorna uma string contendo HTML formatado
+        // As classes filhas vão adicionar mais <p> a esta string base.
+        return `
+            <p><strong>Modelo:</strong> ${this.modelo}</p>
+            <p><strong>Cor:</strong> ${this.cor}</p>
+            <p><strong>Status:</strong> <span class="${statusClass}">${statusTexto}</span></p> <!-- Span com classe para cor -->
+            <p><strong>Velocidade:</strong> ${this.velocidade.toFixed(0)} km/h</p>
+            <!-- Adicionado Velocidade Máxima para referência -->
+            <p><em>Velocidade Máxima: ${this.velocidadeMaxima} km/h</em></p>
+        `;
+        // Note: O velocímetro será adicionado na função atualizarDisplay()
+    }
+
+    // --- MÉTODOS AUXILIARES ---
+
+    // Função para exibir alertas simples ao usuário
+    alerta(mensagem) {
+        // alert() pausa a execução, pode ser trocado por uma div de mensagens no futuro
+        alert(`[${this.modelo}] ${mensagem}`);
+    }
+
+    // Função interna que chama a função global para atualizar a interface
+    // Isso garante que a tela seja atualizada sempre que o estado do objeto (que está selecionado) mudar.
+    atualizarDisplayGeral() {
+        // Verifica se ESTE objeto é o que está selecionado na interface global
+        if (veiculoSelecionado === this) {
+            atualizarDisplay(); // Chama a função global definida mais abaixo
+        }
+    }
 }
-// --- Classe Base Veiculo ---
-class Veiculo {
-    constructor(modelo, cor) { if (this.constructor === Veiculo) { throw new Error("Classe abstrata 'Veiculo' não pode ser instanciada."); } this.modelo = modelo; this.cor = cor; this.ligado = false; this.velocidade = 0; this.velocidadeMaxima = this.definirVelocidadeMaxima(); this.historicoManutencao = []; console.log(`Veículo base ${this.modelo} ${this.cor} inicializado.`); }
-    definirVelocidadeMaxima() { throw new Error("Método 'definirVelocidadeMaxima' deve ser implementado."); }
-    ligar() { if (this.ligado) { this.exibirAlerta(`${this.modelo} já ligado.`, 'info'); return; } this.ligado = true; this.tocarSom('ligar'); console.log(`${this.modelo} ligado.`); this.atualizarInterface(); }
-    desligar() { if (!this.ligado) { this.exibirAlerta(`${this.modelo} já desligado.`, 'info'); return; } if (this.velocidade > 0) { this.exibirAlerta(`Não desligar ${this.modelo} em movimento.`, 'erro'); return; } this.ligado = false; this.tocarSom('desligar'); console.log(`${this.modelo} desligado.`); this.atualizarInterface(); }
-    acelerar(inc = 10) { if (!this.ligado) { this.exibirAlerta(`Ligue ${this.modelo} p/ acelerar.`, 'erro'); return; } if (this.velocidade >= this.velocidadeMaxima) { this.exibirAlerta(`${this.modelo} na vel. máxima.`, 'info'); return; } this.velocidade = Math.min(this.velocidade + Math.round(inc), this.velocidadeMaxima); this.tocarSom('acelerar'); console.log(`${this.modelo} acelerou p/ ${this.velocidade} km/h.`); this.atualizarInterface(); }
-    frear(dec = 10) { if (this.velocidade === 0) { this.exibirAlerta(`${this.modelo} já parado.`, 'info'); return; } this.velocidade = Math.max(this.velocidade - Math.round(dec), 0); this.tocarSom('frear'); console.log(this.velocidade === 0 ? `${this.modelo} parou.` : `${this.modelo} freou p/ ${this.velocidade} km/h.`); this.atualizarInterface(); }
-    buzinar() { this.tocarSom('buzina'); console.log(`${this.modelo} buzinou!`); }
-    exibirInformacoes() { return `<strong>Modelo:</strong> ${this.modelo}<br><strong>Cor:</strong> ${this.cor}<br><strong>Status:</strong> <span class="status-${this.ligado ? 'ligado' : 'desligado'}">${this.ligado ? 'Ligado ✅' : 'Desligado ❌'}</span><br><strong>Vel. Atual:</strong> ${this.velocidade} km/h<br><strong>Vel. Máxima:</strong> ${this.velocidadeMaxima} km/h`; }
-    atualizarInterface() { if (typeof atualizarDisplayVeiculo === 'function') { atualizarDisplayVeiculo(); } if (typeof salvarGaragem === 'function') { salvarGaragem(); } }
-    exibirAlerta(msg, tipo = 'info') { if (typeof mostrarAlerta === 'function') { mostrarAlerta(msg, tipo); } else { alert(`[${this.modelo}] ${msg}`); } }
-    tocarSom(acao) { if (typeof tocarSomVeiculo === 'function') { tocarSomVeiculo(acao); } }
-    adicionarManutencao(manut) { if (!Array.isArray(this.historicoManutencao)) { this.historicoManutencao = []; } if (manut instanceof Manutencao && manut.validar()) { this.historicoManutencao.push(manut); console.log(`Manutenção [${manut.tipo}] add a ${this.modelo}.`); this.atualizarInterface(); return true; } else { console.error("Tentativa de add manutenção inválida:", manut); this.exibirAlerta("Erro ao add manutenção.", "erro"); return false; } }
-    obterHistoricoManutencaoFormatado() { if (!this.historicoManutencao || this.historicoManutencao.length === 0) { return "<p>Nenhuma manutenção registrada/agendada.</p>"; } const agora = new Date(); agora.setHours(0, 0, 0, 0); const historico = []; const agendamentos = []; [...this.historicoManutencao].sort((a, b) => new Date(b.data + 'T00:00:00') - new Date(a.data + 'T00:00:00')).forEach(m => { const dataM = new Date(m.data + 'T00:00:00'); if (dataM <= agora) { historico.push(m); } else { agendamentos.push(m); } }); agendamentos.sort((a, b) => new Date(a.data + 'T00:00:00') - new Date(b.data + 'T00:00:00')); let histHTML = "<h4>Histórico</h4>" + (historico.length > 0 ? `<ul>${historico.map(m => `<li>${m.formatar()}</li>`).join('')}</ul>` : "<p>Nenhum registro passado.</p>"); let agenHTML = "<h4>Agendamentos</h4>" + (agendamentos.length > 0 ? `<ul>${agendamentos.map(m => `<li>${m.formatar()} <span style='color:#007bff;'><i>(Agendado)</i></span></li>`).join('')}</ul>` : "<p>Nenhum agendamento futuro.</p>"); return histHTML + agenHTML; }
+
+// --- CLASSE FILHA 1: CarroEsportivo ---
+// Usa a palavra 'extends' para indicar que HERDA da classe 'Carro'
+class CarroEsportivo extends Carro {
+    // Novo atributo, específico do CarroEsportivo
+    turboAtivado; // boolean: true se o turbo está ligado
+
+    // Construtor do CarroEsportivo
+    constructor(modelo, cor, velocidadeMaxima = 250) { // Velocidade máxima padrão maior que Carro comum
+        // 1. OBRIGATÓRIO: Chamar o construtor da CLASSE PAI (Carro) primeiro!
+        // 'super()' chama o constructor de Carro, passando os parâmetros necessários.
+        // Isso inicializa os atributos herdados (modelo, cor, ligado, velocidade, velocidadeMaxima).
+        super(modelo, cor, velocidadeMaxima);
+
+        // 2. Inicializar os atributos específicos DESTA classe (CarroEsportivo)
+        this.turboAtivado = false; // Turbo começa desligado
+
+        console.log(`LOG: -> ${this.modelo} é um Carro Esportivo! Turbo disponível.`);
+    }
+
+    // --- NOVOS MÉTODOS (Específicos do CarroEsportivo) ---
+    ativarTurbo() {
+        if (!this.ligado) {
+            this.alerta("Ligue o carro esportivo para usar o turbo!");
+            return;
+        }
+        if (this.turboAtivado) {
+            this.alerta("O turbo já está ativo!");
+            return;
+        }
+        this.turboAtivado = true;
+        console.log(`LOG: ${this.modelo}: TURBO ATIVADO! 🚀`);
+        this.atualizarDisplayGeral();
+    }
+
+    desativarTurbo() {
+        if (!this.turboAtivado) {
+            // Não precisa alertar se já está desativado
+            return;
+        }
+        this.turboAtivado = false;
+        console.log(`LOG: ${this.modelo}: Turbo desativado.`);
+        this.atualizarDisplayGeral();
+    }
+
+    // --- SOBRESCRITA DE MÉTODOS (Polimorfismo em Ação) ---
+
+    // 1. Sobrescrevendo 'acelerar' para incluir o efeito do turbo
+    acelerar(incremento = 20) { // Aceleração padrão maior que o Carro comum
+        if (!this.ligado) {
+            this.alerta("Ligue o carro esportivo para acelerar!");
+            return;
+        }
+
+        // Calcula o boost: 1.5x se turbo ativo, 1.0x (normal) se desativado
+        const boost = this.turboAtivado ? 1.5 : 1.0;
+        const aceleracaoReal = incremento * boost;
+
+        // O resto da lógica é similar ao 'acelerar' original, mas usando a aceleraçãoReal
+        if (this.velocidade >= this.velocidadeMaxima) {
+            this.alerta("Velocidade máxima já atingida!");
+            this.velocidade = this.velocidadeMaxima;
+            this.atualizarDisplayGeral();
+            return;
+        }
+
+        this.velocidade += aceleracaoReal;
+        if (this.velocidade > this.velocidadeMaxima) {
+            this.velocidade = this.velocidadeMaxima;
+        }
+
+        // Mensagem diferente se o turbo está ativo
+        const msgTurbo = this.turboAtivado ? ' COM TURBO' : '';
+        console.log(`LOG: ${this.modelo}: Acelerando${msgTurbo} para ${this.velocidade.toFixed(0)} km/h.`);
+        this.atualizarDisplayGeral();
+    }
+
+    // 2. Sobrescrevendo 'desligar' para garantir que o turbo desative junto
+    desligar() {
+        // Ação específica do CarroEsportivo ANTES de desligar
+        if (this.turboAtivado) {
+            this.desativarTurbo(); // Desativa o turbo automaticamente
+        }
+        // Chama o método 'desligar' ORIGINAL da classe PAI (Carro)
+        // 'super.metodo()' permite reutilizar a lógica da classe pai.
+        super.desligar();
+    }
+
+    // 3. Sobrescrevendo 'exibirInformacoes' para adicionar o status do Turbo
+    exibirInformacoes() {
+        // Pega a string HTML base do método 'exibirInformacoes' da classe PAI (Carro)
+        const infoBase = super.exibirInformacoes();
+
+        // Cria a string HTML com a informação específica do turbo
+        const statusTurboTexto = this.turboAtivado ? 'ATIVADO 🚀' : 'Desativado';
+        const infoExtra = `<p><strong>Turbo:</strong> ${statusTurboTexto}</p>`;
+
+        // Retorna a informação base + a informação extra
+        return infoBase + infoExtra;
+    }
 }
-// --- Classe Carro ---
-class Carro extends Veiculo { constructor(m, c) { super(m, c); console.log(`Carro ${m} ${c} criado.`); } definirVelocidadeMaxima() { return 180; } }
-// --- Classe CarroEsportivo ---
-class CarroEsportivo extends Carro { constructor(m, c) { super(m, c); this.turboAtivado = false; console.log(`Esportivo ${m} ${c} criado.`); } definirVelocidadeMaxima() { return 250; } ativarTurbo() { if (!this.ligado) { this.exibirAlerta(`Ligue ${this.modelo} p/ ativar turbo.`, 'erro'); return; } if (this.turboAtivado) { this.exibirAlerta(`Turbo já ativado.`, 'info'); return; } this.turboAtivado = true; console.log(`Turbo ${this.modelo} ON! 🚀`); this.exibirAlerta(`Turbo ativado! 🔥`, 'info'); this.atualizarInterface(); } desativarTurbo() { if (!this.turboAtivado) { this.exibirAlerta(`Turbo já desativado.`, 'info'); return; } this.turboAtivado = false; console.log(`Turbo ${this.modelo} OFF.`); this.exibirAlerta(`Turbo desativado.`, 'info'); this.atualizarInterface(); } acelerar(incBase = 15) { if (!this.ligado) { this.exibirAlerta(`Ligue ${this.modelo} p/ acelerar.`, 'erro'); return; } if (this.velocidade >= this.velocidadeMaxima) { this.exibirAlerta(`${this.modelo} na vel. máxima.`, 'info'); return; } const incReal = this.turboAtivado ? incBase * 1.8 : incBase; this.velocidade = Math.min(this.velocidade + Math.round(incReal), this.velocidadeMaxima); this.tocarSom('acelerar'); console.log(`${this.modelo} ${this.turboAtivado ? '(Turbo)' : ''} acelerou p/ ${this.velocidade} km/h.`); this.atualizarInterface(); } exibirInformacoes() { const base = super.exibirInformacoes(); return `${base}<br><strong>Turbo:</strong> <span class="status-${this.turboAtivado ? 'ligado' : 'desligado'}">${this.turboAtivado ? 'Ativado 🔥' : 'Desativado'}</span>`; } }
-// --- Classe Caminhao ---
-class Caminhao extends Veiculo { constructor(m, c, cap) { super(m, c); this.capacidadeCarga = typeof cap === 'number' && cap > 0 ? cap : 0; this.cargaAtual = 0; console.log(`Caminhão ${m} ${c} (Cap: ${this.capacidadeCarga.toLocaleString()}kg) criado.`); } definirVelocidadeMaxima() { return 100; } carregar(peso) { if (this.ligado) { this.exibirAlerta(`Desligue ${this.modelo} p/ carregar.`, 'erro'); return; } if (isNaN(peso) || peso <= 0) { this.exibirAlerta("Peso inválido.", "erro"); return; } if (this.cargaAtual + peso > this.capacidadeCarga) { const livre = this.capacidadeCarga - this.cargaAtual; this.exibirAlerta(`Não cabe ${peso.toLocaleString()}kg. Excede em ${(peso - livre).toLocaleString()}kg. Livre: ${livre.toLocaleString()}kg.`, "erro"); } else { this.cargaAtual += peso; console.log(`${this.modelo} carregado com ${peso.toLocaleString()}kg. Atual: ${this.cargaAtual.toLocaleString()}kg.`); this.exibirAlerta(`${this.modelo} carregado: ${peso.toLocaleString()}kg. Carga: ${this.cargaAtual.toLocaleString()}kg.`, 'info'); this.atualizarInterface(); } } descarregar(peso) { if (this.ligado) { this.exibirAlerta(`Desligue ${this.modelo} p/ descarregar.`, 'erro'); return; } if (isNaN(peso) || peso <= 0) { this.exibirAlerta("Peso inválido.", "erro"); return; } if (this.cargaAtual - peso < 0) { this.exibirAlerta(`Não pode descarregar ${peso.toLocaleString()}kg. Carga: ${this.cargaAtual.toLocaleString()}kg.`, "erro"); } else { this.cargaAtual -= peso; console.log(`${this.modelo} descarregado ${peso.toLocaleString()}kg. Atual: ${this.cargaAtual.toLocaleString()}kg.`); this.exibirAlerta(`${this.modelo} descarregado: ${peso.toLocaleString()}kg. Carga: ${this.cargaAtual.toLocaleString()}kg.`, 'info'); this.atualizarInterface(); } } acelerar(incBase = 8) { if (!this.ligado) { this.exibirAlerta(`Ligue ${this.modelo} p/ acelerar.`, 'erro'); return; } if (this.velocidade >= this.velocidadeMaxima) { this.exibirAlerta(`${this.modelo} na vel. máxima.`, 'info'); return; } const fatorCarga = Math.max(0.4, 1 - (this.cargaAtual / (this.capacidadeCarga * 1.5))); const incReal = Math.max(1, Math.round(incBase * fatorCarga)); this.velocidade = Math.min(this.velocidade + incReal, this.velocidadeMaxima); this.tocarSom('acelerar'); console.log(`${this.modelo} acelerou ${incReal} p/ ${this.velocidade} km/h (Carga:${this.cargaAtual.toLocaleString()}kg)`); this.atualizarInterface(); } exibirInformacoes() { const base = super.exibirInformacoes(); const perc = ((this.cargaAtual / (this.capacidadeCarga || 1)) * 100).toFixed(0); return `${base}<br><strong>Capacidade:</strong> ${this.capacidadeCarga.toLocaleString()} kg<br><strong>Carga Atual:</strong> ${this.cargaAtual.toLocaleString()} kg <progress value="${this.cargaAtual}" max="${this.capacidadeCarga}" title="${perc}%"></progress> <span style='font-size:0.8em'>(${perc}%)</span>`; } }
-// --- FIM DAS CLASSES ---
 
+// --- CLASSE FILHA 2: Caminhao ---
+class Caminhao extends Carro {
+    // Novos atributos específicos
+    capacidadeCarga; // number: peso máximo que pode carregar (ex: em kg)
+    cargaAtual;      // number: peso que está carregando atualmente
 
-// ================================================================== //
-// --- Lógica Principal da Aplicação e Manipulação da Interface --- //
-// ================================================================== //
+    constructor(modelo, cor, capacidadeCarga, velocidadeMaxima = 120) { // Vel. máx. padrão menor
+        // 1. Chama o construtor da classe PAI (Carro)
+        super(modelo, cor, velocidadeMaxima);
 
-// --- Seleção de Elementos do DOM ---
-console.log("Selecionando elementos do DOM...");
-const botoesVeiculoContainer = document.getElementById('botoes-veiculo');
-const nomeVeiculoSelecionadoEl = document.getElementById('nome-veiculo-selecionado');
-const alertaContainer = document.getElementById('alerta-container');
-const informacoesVeiculoEl = document.getElementById('informacoes-veiculo');
-// Seleciona TODAS as imagens que podem ser exibidas
-const imagensDisplay = document.querySelectorAll('.imagem-display'); // NodeList com todas as <img>
-const imagemPlaceholderEl = document.getElementById('imagem-placeholder'); // Referência específica ao placeholder
-const imagemVeiculoContainer = document.getElementById('imagem-veiculo-container'); // Container das imagens
-const velocimetroProgress = document.getElementById('velocimetro');
-const velocidadeTexto = document.getElementById('velocidade-texto');
-const controlesVeiculoEl = document.getElementById('controles-veiculo');
-const acoesEsportivo = document.querySelectorAll('.acao-esportivo');
-const acoesCaminhao = document.querySelectorAll('.acao-caminhao');
-const inputPesoCarga = document.getElementById('peso-carga');
-const historicoManutencaoEl = document.getElementById('historico-manutencao');
-const formAddManutencao = document.getElementById('form-add-manutencao');
-const dataManutencaoInput = document.getElementById('data-manutencao');
-const tipoServicoInput = document.getElementById('tipo-servico');
-const custoManutencaoInput = document.getElementById('custo-manutencao');
-const descricaoManutencaoInput = document.getElementById('descricao-manutencao');
-const manutencaoSemVeiculoMsg = document.getElementById('manutencao-sem-veiculo');
-const formAddVeiculo = document.getElementById('form-add-veiculo');
-const tipoVeiculoInput = document.getElementById('tipo-veiculo');
-const modeloVeiculoInput = document.getElementById('modelo-veiculo');
-const corVeiculoInput = document.getElementById('cor-veiculo');
-const capacidadeVeiculoInput = document.getElementById('capacidade-veiculo');
-const campoCapacidadeDiv = document.getElementById('campo-capacidade');
-const volumeControl = document.getElementById('volume-control');
-const sons = { // Mapeamento para elementos <audio>
-    ligar: document.getElementById('som-ligar'),
-    desligar: document.getElementById('som-desligar'),
-    acelerar: document.getElementById('som-acelerar'),
-    frear: document.getElementById('som-frear'),
-    buzina: document.getElementById('som-buzina'),
-};
-console.log("Elementos do DOM selecionados.");
+        // 2. Inicializa atributos específicos do Caminhao
+        this.capacidadeCarga = capacidadeCarga;
+        this.cargaAtual = 0; // Começa vazio
 
-// --- Variáveis Globais de Estado ---
-let garagem = {};
-let veiculoAtual = null;
-let idVeiculoAtual = null;
-let alertaTimeout = null;
-let volumeAtual = 0.5;
+        console.log(`LOG: -> ${this.modelo} é um Caminhão! Capacidade: ${this.capacidadeCarga} kg.`);
+    }
 
+    // --- NOVOS MÉTODOS (Específicos do Caminhao) ---
+    carregar(peso) {
+        // Validação básica do peso
+        if (typeof peso !== 'number' || peso <= 0) {
+            this.alerta("Insira um peso válido (número positivo) para carregar.");
+            return;
+        }
+        // Verifica se excede a capacidade
+        if (this.cargaAtual + peso > this.capacidadeCarga) {
+            const espacoLivre = this.capacidadeCarga - this.cargaAtual;
+            this.alerta(`Capacidade máxima excedida! Só é possível carregar mais ${espacoLivre.toFixed(0)} kg.`);
+            return;
+        }
+        // Adiciona o peso à carga atual
+        this.cargaAtual += peso;
+        console.log(`LOG: ${this.modelo}: Carregado +${peso} kg. Carga atual: ${this.cargaAtual} kg.`);
+        this.atualizarDisplayGeral();
+    }
 
-// --- Funções Auxiliares da UI ---
-/** Exibe alerta temporário. */
-function mostrarAlerta(mensagem, tipo = 'info') { /* ... (código da função mostrarAlerta da resposta anterior) ... */
-    if (!alertaContainer) { console.error("Elemento #alerta-container não encontrado!"); return; } if (alertaTimeout) clearTimeout(alertaTimeout); alertaContainer.textContent = mensagem; alertaContainer.className = `alerta-${tipo}`; alertaContainer.style.display = 'block'; alertaContainer.style.opacity = 1; const duracaoAlerta = 5000; alertaTimeout = setTimeout(() => { alertaContainer.style.opacity = 0; setTimeout(() => { if (alertaContainer.style.opacity === '0') { alertaContainer.style.display = 'none'; alertaContainer.textContent = ''; alertaContainer.className = ''; } }, 400); alertaTimeout = null; }, duracaoAlerta);
- }
-/** Toca efeito sonoro. */
-function tocarSomVeiculo(acao) { /* ... (código da função tocarSomVeiculo da resposta anterior) ... */
-    const som = sons[acao]; if (som instanceof HTMLAudioElement) { som.pause(); som.currentTime = 0; som.volume = volumeAtual; som.play().catch(error => console.warn(`Falha ao tocar som "${acao}": ${error.message}`)); } else if (acao) { console.warn(`Elemento de áudio para a ação "${acao}" não encontrado.`); }
+     descarregar(peso) {
+         if (typeof peso !== 'number' || peso <= 0) {
+             this.alerta("Insira um peso válido (número positivo) para descarregar.");
+             return;
+         }
+         // Verifica se tem carga suficiente para descarregar
+         if (peso > this.cargaAtual) {
+             this.alerta(`Não é possível descarregar ${peso} kg. Carga atual é ${this.cargaAtual} kg.`);
+             // Poderia descarregar tudo neste caso: this.cargaAtual = 0;
+             return;
+         }
+         // Remove o peso da carga atual
+         this.cargaAtual -= peso;
+         console.log(`LOG: ${this.modelo}: Descarregado -${peso} kg. Carga atual: ${this.cargaAtual} kg.`);
+         this.atualizarDisplayGeral();
+     }
+
+    // --- SOBRESCRITA DE MÉTODOS ---
+
+    // 1. Sobrescrevendo 'acelerar' (Caminhão acelera mais devagar)
+    acelerar(incremento = 5) { // Incremento padrão menor
+        // Poderíamos adicionar lógica aqui para acelerar ainda mais devagar se estiver carregado
+        // Ex: const fatorCarga = 1 - (this.cargaAtual / this.capacidadeCarga) * 0.5; // 0 a 50% mais lento
+        // const aceleracaoReal = incremento * fatorCarga;
+        // super.acelerar(aceleracaoReal);
+
+        // Versão simples: apenas chama o 'acelerar' do pai com um incremento menor
+        super.acelerar(incremento);
+         // A mensagem de log será a do 'acelerar' da classe Carro.
+    }
+
+    // 2. Sobrescrevendo 'frear' (Opcional: Caminhão poderia frear mais devagar também)
+    // frear(decremento = 10) { // Decremento padrão menor
+    //     // Poderia ter lógica de carga aqui também
+    //     super.frear(decremento);
+    // }
+
+    // 3. Sobrescrevendo 'exibirInformacoes' para adicionar detalhes da carga
+    exibirInformacoes() {
+        // Pega a info base do pai
+        const infoBase = super.exibirInformacoes();
+
+        // Adiciona a info específica da carga
+        const infoExtra = `
+            <p><strong>Capacidade:</strong> ${this.capacidadeCarga} kg</p>
+            <p><strong>Carga Atual:</strong> ${this.cargaAtual} kg</p>
+        `;
+        // Retorna a combinação
+        return infoBase + infoExtra;
+    }
 }
 
-// --- Função Principal de Atualização da Interface ---
-/** Atualiza a UI baseada no veículo selecionado. */
-function atualizarDisplayVeiculo() {
-    console.log(`Atualizando display. Veículo atual: ${idVeiculoAtual ? idVeiculoAtual : 'Nenhum'}`);
 
-    // --- Caso 1: Nenhum veículo selecionado ---
-    if (!veiculoAtual || !idVeiculoAtual) {
-        nomeVeiculoSelecionadoEl.textContent = 'Nenhum';
-        informacoesVeiculoEl.innerHTML = '<p>Selecione um veículo na garagem ou adicione um novo.</p>';
-        // Mostra APENAS o placeholder, esconde as outras imagens
-        imagensDisplay.forEach(img => {
-            img.style.display = (img.id === 'imagem-placeholder') ? 'block' : 'none';
-        });
-        controlesVeiculoEl.style.display = 'none';
-        formAddManutencao.style.display = 'none';
-        manutencaoSemVeiculoMsg.style.display = 'block';
-        historicoManutencaoEl.innerHTML = '';
-        velocimetroProgress.style.display = 'none';
-        velocidadeTexto.style.display = 'none';
-        document.querySelectorAll('#botoes-veiculo button').forEach(btn => btn.classList.remove('selecionado'));
-        console.log("Display atualizado para 'Nenhum veículo'.");
+/* ==========================================================================
+   LÓGICA DA INTERFACE (Manipulação do HTML e Eventos)
+   ========================================================================== */
+
+// --- CRIAÇÃO DOS OBJETOS (Instâncias das Classes) ---
+// Agora que as "plantas" (classes) estão definidas, criamos os objetos reais.
+const meuCarro = new Carro('VW Fusca', 'Azul', 110); // Objeto do tipo Carro
+const meuCarroEsportivo = new CarroEsportivo('Ferrari F40', 'Vermelho', 320); // Objeto do tipo CarroEsportivo
+const meuCaminhao = new Caminhao('Scania R730', 'Prata', 25000, 90); // Objeto do tipo Caminhao
+
+// --- VARIÁVEL GLOBAL para saber qual veículo está selecionado na interface ---
+let veiculoSelecionado = null; // Começa como null (nenhum selecionado)
+
+// --- REFERÊNCIAS aos elementos HTML que vamos manipular ---
+// Pegamos os elementos pelos seus IDs definidos no HTML
+const divInformacoes = document.getElementById('informacoesVeiculo');
+const painelControles = document.getElementById('painelControles');
+const tituloVeiculo = document.getElementById('tituloVeiculo');
+const controlesEsportivo = document.getElementById('controlesEsportivo');
+const controlesCaminhao = document.getElementById('controlesCaminhao');
+const cargaInput = document.getElementById('cargaInput');
+
+// --- FUNÇÃO PRINCIPAL PARA ATUALIZAR A INTERFACE ---
+// Esta função será chamada sempre que precisarmos mostrar o estado atual do veículo selecionado.
+function atualizarDisplay() {
+    // Verifica se algum veículo foi selecionado
+    if (veiculoSelecionado) {
+        // ** PONTO CHAVE DO POLIMORFISMO NA EXIBIÇÃO **
+        // Chamamos o método exibirInformacoes() no objeto selecionado.
+        // O JavaScript automaticamente executa a versão CORRETA do método:
+        // - Se for meuCarro, executa Carro.exibirInformacoes()
+        // - Se for meuCarroEsportivo, executa CarroEsportivo.exibirInformacoes() (que inclui o turbo)
+        // - Se for meuCaminhao, executa Caminhao.exibirInformacoes() (que inclui a carga)
+        // A função atualizarDisplay NÃO precisa saber o tipo específico do veículo aqui.
+        let htmlInfo = veiculoSelecionado.exibirInformacoes();
+
+        // Adiciona o velocímetro visual dinamicamente
+        // Calcula a porcentagem da velocidade atual em relação à máxima
+        let percVelocidade = 0;
+        if (veiculoSelecionado.velocidadeMaxima > 0) { // Evita divisão por zero se max for 0
+            percVelocidade = (veiculoSelecionado.velocidade / veiculoSelecionado.velocidadeMaxima) * 100;
+        }
+        // Garante que a porcentagem não passe de 100 (visualmente)
+        percVelocidade = Math.min(percVelocidade, 100);
+
+        // Adiciona o HTML do velocímetro à string de informações
+        htmlInfo += `
+            <div class="velocimetro" title="${veiculoSelecionado.velocidade.toFixed(0)} km/h">
+                <div class="velocimetro-barra" style="width: ${percVelocidade.toFixed(1)}%;">
+                     <!-- Mostra o valor numérico dentro da barra se houver espaço -->
+                     ${percVelocidade > 15 ? veiculoSelecionado.velocidade.toFixed(0) + ' km/h' : ''}
+                </div>
+            </div>
+        `;
+
+        // Coloca o HTML gerado dentro da div 'informacoesVeiculo'
+        divInformacoes.innerHTML = htmlInfo;
+
+        // Atualiza o título do painel de controles
+        tituloVeiculo.textContent = `Controles: ${veiculoSelecionado.modelo}`;
+        // Mostra o painel de controles (caso estivesse escondido)
+        painelControles.style.display = 'block';
+
+        // --- Lógica para mostrar/esconder controles específicos ---
+        // Aqui usamos 'instanceof' para verificar o TIPO do objeto selecionado
+        // e decidir quais botões/campos extras mostrar. É útil para a INTERFACE.
+        controlesEsportivo.style.display = (veiculoSelecionado instanceof CarroEsportivo) ? 'block' : 'none';
+        controlesCaminhao.style.display = (veiculoSelecionado instanceof Caminhao) ? 'block' : 'none';
+
+    } else {
+        // Se nenhum veículo estiver selecionado
+        divInformacoes.innerHTML = '<p>Selecione um veículo acima.</p>';
+        tituloVeiculo.textContent = 'Controles';
+        painelControles.style.display = 'none'; // Esconde o painel todo
+        // Garante que os controles específicos também fiquem escondidos
+        controlesEsportivo.style.display = 'none';
+        controlesCaminhao.style.display = 'none';
+    }
+}
+
+// --- FUNÇÃO GENÉRICA DE INTERAÇÃO ---
+// Esta função será chamada pelos botões de ação (Ligar, Acelerar, Ativar Turbo, Carregar, etc.)
+// Ela recebe a AÇÃO desejada como uma string.
+function interagir(acao) {
+    // Verifica se há um veículo selecionado
+    if (!veiculoSelecionado) {
+        alert("Erro: Nenhum veículo selecionado para interagir.");
         return;
     }
 
-    // --- Caso 2: Um veículo está selecionado ---
-    controlesVeiculoEl.style.display = 'block';
-    formAddManutencao.style.display = 'block';
-    manutencaoSemVeiculoMsg.style.display = 'none';
-    velocimetroProgress.style.display = 'block';
-    velocidadeTexto.style.display = 'inline-block';
+    console.log(`LOG: Tentando ação "${acao}" no veículo: ${veiculoSelecionado.modelo}`);
 
-    // 1. Atualiza Nome
-    nomeVeiculoSelecionadoEl.textContent = `${veiculoAtual.modelo} (${veiculoAtual.constructor.name})`;
+    // ** PONTO CHAVE DO POLIMORFISMO NA INTERAÇÃO **
+    // Usamos um switch para chamar o método correspondente no objeto 'veiculoSelecionado'.
+    // Para métodos comuns (ligar, desligar, acelerar, frear) que existem na classe base 'Carro'
+    // (e podem ou não ser sobrescritos nas filhas), podemos simplesmente chamar:
+    //   veiculoSelecionado.metodo()
+    // O JavaScript executa a versão correta (da classe pai ou da filha, se sobrescrito).
+    //
+    // Para métodos ESPECÍFICOS (ativarTurbo, carregar), que SÓ existem nas classes filhas,
+    // é uma boa prática verificar se o método existe ANTES de chamá-lo, para evitar erros.
+    // Usamos `typeof veiculoSelecionado.metodo === 'function'` para isso.
 
-    // 2. Atualiza Informações
-    informacoesVeiculoEl.innerHTML = veiculoAtual.exibirInformacoes();
+    try { // Bloco try...catch para capturar erros inesperados durante a execução da ação
+        switch (acao) {
+            // Ações Comuns (Existem em Carro, podem ser sobrescritas)
+            case 'ligar':
+                veiculoSelecionado.ligar();
+                break; // 'break' impede que o código continue para o próximo 'case'
+            case 'desligar':
+                veiculoSelecionado.desligar();
+                break;
+            case 'acelerar':
+                veiculoSelecionado.acelerar(); // Executa Carro.acelerar ou CarroEsportivo.acelerar ou Caminhao.acelerar
+                break;
+            case 'frear':
+                veiculoSelecionado.frear();
+                break;
 
-    // 3. ATUALIZA IMAGEM (Lógica Modificada para controlar visibilidade)
-    console.log(`Atualizando imagem para tipo: ${veiculoAtual.constructor.name}`);
-    let idImagemAtiva = 'imagem-placeholder'; // ID da imagem a ser exibida (padrão placeholder)
-    const tipoVeiculo = veiculoAtual.constructor.name;
+            // Ações Específicas (Verificar existência)
+            case 'ativarTurbo':
+                // Verifica se o objeto ATUALMENTE selecionado TEM um método chamado 'ativarTurbo'
+                if (typeof veiculoSelecionado.ativarTurbo === 'function') {
+                    veiculoSelecionado.ativarTurbo(); // Só chama se existir
+                } else {
+                    // Alerta se tentou ativar turbo em veículo que não tem
+                    veiculoSelecionado.alerta("Este veículo não possui turbo!");
+                }
+                break;
+             case 'desativarTurbo':
+                if (typeof veiculoSelecionado.desativarTurbo === 'function') {
+                    veiculoSelecionado.desativarTurbo();
+                }
+                // Não precisa de alerta se tentou desativar em quem não tem
+                break;
 
-    // Determina qual ID de imagem corresponde ao tipo do veículo
-    switch (tipoVeiculo) {
-        case 'Caminhao':       idImagemAtiva = 'imagem-caminhao'; break;
-        case 'CarroEsportivo': idImagemAtiva = 'imagem-esportivo'; break;
-        case 'Carro':          idImagemAtiva = 'imagem-carro'; break;
-        // Adicionar mais 'case' para outros tipos
-        default:
-             console.warn(`Tipo "${tipoVeiculo}" não tem ID de imagem mapeado. Usando placeholder.`);
-             // idImagemAtiva permanece 'imagem-placeholder'
-             break;
+            case 'carregar':
+                 // Verifica se o método 'carregar' existe
+                if (typeof veiculoSelecionado.carregar === 'function') {
+                    // Pega o valor do campo de input 'cargaInput'
+                    const pesoTexto = cargaInput.value;
+                    // Converte o texto para número inteiro (base 10)
+                    const pesoNumero = parseInt(pesoTexto, 10);
+                    // Valida se a conversão deu certo e se é um número positivo
+                    if (!isNaN(pesoNumero) && pesoNumero > 0) {
+                        veiculoSelecionado.carregar(pesoNumero); // Chama o método com o valor
+                    } else {
+                        veiculoSelecionado.alerta("Por favor, insira um peso válido (número positivo).");
+                    }
+                } else {
+                    veiculoSelecionado.alerta("Este veículo não pode carregar carga!");
+                }
+                break;
+
+             case 'descarregar':
+                 if (typeof veiculoSelecionado.descarregar === 'function') {
+                     const pesoTexto = cargaInput.value;
+                     const pesoNumero = parseInt(pesoTexto, 10);
+                     if (!isNaN(pesoNumero) && pesoNumero > 0) {
+                         veiculoSelecionado.descarregar(pesoNumero);
+                     } else {
+                         veiculoSelecionado.alerta("Por favor, insira um peso válido (número positivo).");
+                     }
+                 } else {
+                     // Não precisa alertar se não for caminhão
+                 }
+                 break;
+
+            // Caso a ação não seja nenhuma das esperadas
+            default:
+                console.warn(`LOG: Ação desconhecida recebida: ${acao}`);
+                alert(`Erro interno: Ação "${acao}" não reconhecida.`);
+        }
+    } catch (error) {
+        // Se ocorrer um erro dentro de qualquer método chamado (ex: erro de lógica)
+        console.error(`ERRO ao executar a ação "${acao}":`, error);
+        alert(`Ocorreu um erro inesperado ao tentar ${acao}. Verifique o console para detalhes.`);
     }
 
-    // Itera sobre TODAS as imagens com a classe .imagem-display
-    imagensDisplay.forEach(img => {
-        // Mostra a imagem se o ID dela for o ID ativo determinado, senão esconde.
-        img.style.display = (img.id === idImagemAtiva) ? 'block' : 'none';
-    });
-    console.log(`Imagem ativa definida para: #${idImagemAtiva}`);
-
-    // 4. Atualiza Velocímetro
-    velocimetroProgress.value = veiculoAtual.velocidade;
-    velocimetroProgress.max = Math.max(1, veiculoAtual.velocidadeMaxima);
-    velocidadeTexto.textContent = `${veiculoAtual.velocidade} km/h`;
-    velocimetroProgress.title = `Velocidade: ${veiculoAtual.velocidade}/${veiculoAtual.velocidadeMaxima} km/h`;
-
-    // 5. Controla Visibilidade de Botões Específicos
-    acoesEsportivo.forEach(el => el.style.display = (veiculoAtual instanceof CarroEsportivo) ? 'inline-block' : 'none');
-    acoesCaminhao.forEach(el => el.style.display = (veiculoAtual instanceof Caminhao) ? 'inline-block' : 'none');
-
-    // 6. Atualiza Histórico de Manutenção
-    historicoManutencaoEl.innerHTML = veiculoAtual.obterHistoricoManutencaoFormatado();
-
-    // 7. Limpa Input de Carga
-    if (inputPesoCarga) inputPesoCarga.value = '';
-
-    // 8. Atualiza Estilo do Botão de Seleção Ativo
-    document.querySelectorAll('#botoes-veiculo button').forEach(btn => {
-        btn.classList.toggle('selecionado', btn.dataset.veiculoId === idVeiculoAtual);
-    });
-
-    console.log(`Display atualizado para veículo: ${idVeiculoAtual}`);
+    // IMPORTANTE: Não precisamos chamar atualizarDisplay() explicitamente aqui no final,
+    // porque cada método de ação (ligar, acelerar, carregar, etc.) dentro das classes
+    // já chama 'this.atualizarDisplayGeral()' internamente, o que garante que a tela
+    // seja atualizada após cada ação bem-sucedida (ou tentativa com alerta).
 }
 
+// --- EVENT LISTENERS (Conectando os Botões do HTML às Funções JavaScript) ---
 
-// --- Função de Interação Polimórfica ---
-/** Executa ação no veículo atual. */
-function interagir(acao) { /* ... (código da função interagir da resposta anterior - não precisa mudar) ... */
-    if (!veiculoAtual) { mostrarAlerta("Selecione um veículo!", "erro"); return; } console.log(`Executando ação: ${acao} em ${idVeiculoAtual}`); try { switch (acao) { case 'ligar': veiculoAtual.ligar(); break; case 'desligar': veiculoAtual.desligar(); break; case 'acelerar': veiculoAtual.acelerar(); break; case 'frear': veiculoAtual.frear(); break; case 'buzinar': veiculoAtual.buzinar(); break; case 'ativarTurbo': case 'desativarTurbo': if (veiculoAtual instanceof CarroEsportivo) { veiculoAtual[acao](); } else { mostrarAlerta(`Ação '${acao}' indisponível.`, "erro"); } break; case 'carregar': case 'descarregar': if (veiculoAtual instanceof Caminhao) { const peso = parseFloat(inputPesoCarga.value); if (!isNaN(peso) && peso > 0) { veiculoAtual[acao](peso); } else { mostrarAlerta("Insira peso válido.", "erro"); inputPesoCarga.focus(); } } else { mostrarAlerta(`Ação '${acao}' indisponível.`, "erro"); } break; default: console.warn(`Ação desconhecida: ${acao}`); mostrarAlerta(`Ação desconhecida: ${acao}`, "erro"); } } catch (error) { console.error(`Erro na ação '${acao}':`, error); mostrarAlerta(`Erro: ${error.message}`, "erro"); }
-}
-
-// --- Funções de Gerenciamento da Garagem ---
-/** Seleciona veículo por ID. */
-function selecionarVeiculo(idVeiculo) { /* ... (código da função selecionarVeiculo da resposta anterior - não precisa mudar) ... */
-    if (garagem.hasOwnProperty(idVeiculo)) { veiculoAtual = garagem[idVeiculo]; idVeiculoAtual = idVeiculo; console.log(`Veículo ${idVeiculo} selecionado.`); atualizarDisplayVeiculo(); verificarAgendamentosProximos(veiculoAtual); } else { console.error(`Veículo ID ${idVeiculo} não encontrado.`); veiculoAtual = null; idVeiculoAtual = null; mostrarAlerta(`Veículo ID ${idVeiculo} não encontrado.`, "erro"); atualizarDisplayVeiculo(); }
-}
-/** Adiciona veículo à garagem. */
-function adicionarVeiculoNaGaragem(veiculo, id) { /* ... (código da função adicionarVeiculoNaGaragem da resposta anterior - não precisa mudar) ... */
-    if (!id) { id = `v_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`; } if (garagem.hasOwnProperty(id)) { mostrarAlerta(`Erro: ID '${id}' já existe.`, "erro"); return null; } garagem[id] = veiculo; console.log(`Veículo ${id} (${veiculo.modelo}) adicionado.`); salvarGaragem(); criarBotoesSelecaoVeiculo(); return id;
- }
-/** Recria botões de seleção. */
-function criarBotoesSelecaoVeiculo() { /* ... (código da função criarBotoesSelecaoVeiculo da resposta anterior - não precisa mudar) ... */
-    botoesVeiculoContainer.innerHTML = ''; const ids = Object.keys(garagem); if (ids.length === 0) { botoesVeiculoContainer.innerHTML = '<p>Garagem vazia.</p>'; return; } ids.forEach(id => { const v = garagem[id]; const btn = document.createElement('button'); btn.textContent = `${v.modelo} (${v.constructor.name})`; btn.dataset.veiculoId = id; btn.title = `Selecionar ${v.constructor.name} ${v.modelo}`; btn.addEventListener('click', () => selecionarVeiculo(id)); botoesVeiculoContainer.appendChild(btn); }); if (idVeiculoAtual && garagem[idVeiculoAtual]) { const btnAtual = botoesVeiculoContainer.querySelector(`button[data-veiculo-id="${idVeiculoAtual}"]`); if (btnAtual) btnAtual.classList.add('selecionado'); }
-}
-
-// --- Persistência com LocalStorage ---
-/** Salva garagem no LocalStorage. */
-function salvarGaragem() { /* ... (código da função salvarGaragem da resposta anterior - não precisa mudar) ... */
-    try { const gS = {}; for (const id in garagem) { if (garagem.hasOwnProperty(id)) { const v = garagem[id]; gS[id] = { tipo: v.constructor.name, dados: { modelo: v.modelo, cor: v.cor, ligado: v.ligado, velocidade: v.velocidade, turboAtivado: v.turboAtivado, capacidadeCarga: v.capacidadeCarga, cargaAtual: v.cargaAtual, historicoManutencao: Array.isArray(v.historicoManutencao) ? v.historicoManutencao.map(m => m.toJSON()) : [] } }; } } localStorage.setItem('garagemVirtual', JSON.stringify(gS)); } catch (e) { console.error("Erro ao salvar:", e); mostrarAlerta("Falha ao salvar dados.", "erro"); }
-}
-/** Carrega garagem do LocalStorage. */
-function carregarGaragem() { /* ... (código da função carregarGaragem da resposta anterior - não precisa mudar) ... */
-    console.log("Carregando garagem..."); try { const gSalva = localStorage.getItem('garagemVirtual'); if (!gSalva) { console.log("Nenhum dado salvo. Criando iniciais."); adicionarVeiculoNaGaragem(new Carro('Fusca', 'Azul'), 'carro1'); adicionarVeiculoNaGaragem(new CarroEsportivo('Ferrari F40', 'Vermelha'), 'esportivo1'); adicionarVeiculoNaGaragem(new Caminhao('Scania R450', 'Branco', 25000), 'caminhao1'); const dataEx = new Date(); dataEx.setDate(dataEx.getDate() - 5); const dataExStr = dataEx.toISOString().split('T')[0]; const manutEx = new Manutencao(dataExStr, 'Revisão Geral', 350); if(garagem['carro1']) garagem['carro1'].adicionarManutencao(manutEx); return; } const gSer = JSON.parse(gSalva); garagem = {}; for (const id in gSer) { if (gSer.hasOwnProperty(id)) { const d = gSer[id]; if (!d || !d.tipo || !d.dados) continue; let vRec = null; switch (d.tipo) { case 'Carro': vRec = new Carro(d.dados.modelo, d.dados.cor); break; case 'CarroEsportivo': vRec = new CarroEsportivo(d.dados.modelo, d.dados.cor); break; case 'Caminhao': vRec = new Caminhao(d.dados.modelo, d.dados.cor, d.dados.capacidadeCarga); break; default: console.warn(`Tipo ${d.tipo} desconhecido.`); continue; } vRec.ligado = d.dados.ligado === true; vRec.velocidade = parseFloat(d.dados.velocidade) || 0; if (vRec instanceof CarroEsportivo) vRec.turboAtivado = d.dados.turboAtivado === true; if (vRec instanceof Caminhao) vRec.cargaAtual = parseFloat(d.dados.cargaAtual) || 0; vRec.historicoManutencao = (Array.isArray(d.dados.historicoManutencao)) ? d.dados.historicoManutencao.map(Manutencao.fromJSON).filter(m => m !== null) : []; garagem[id] = vRec; } } console.log("Garagem carregada."); } catch (e) { console.error("Erro crítico ao carregar:", e); mostrarAlerta("Erro ao carregar dados. Resetando.", "erro"); localStorage.removeItem('garagemVirtual'); garagem = {}; adicionarVeiculoNaGaragem(new Carro('Fusca', 'Azul'), 'carro1'); adicionarVeiculoNaGaragem(new CarroEsportivo('Ferrari F40', 'Vermelha'), 'esportivo1'); adicionarVeiculoNaGaragem(new Caminhao('Scania R450', 'Branco', 25000), 'caminhao1'); }
-}
-
-// --- Lógica de Lembretes ---
-/** Verifica agendamentos próximos. */
-function verificarAgendamentosProximos(veiculo) { /* ... (código da função verificarAgendamentosProximos da resposta anterior - não precisa mudar) ... */
-    if (!veiculo || !Array.isArray(veiculo.historicoManutencao)) return; const hoje = new Date(); hoje.setHours(0,0,0,0); const amanha = new Date(hoje); amanha.setDate(hoje.getDate() + 1); veiculo.historicoManutencao.forEach(m => { try { const dataM = new Date(m.data + 'T00:00:00'); const tsM = dataM.getTime(); if (tsM === hoje.getTime()) { mostrarAlerta(`🔔 HOJE: ${m.tipo} p/ ${veiculo.modelo}!`, 'info'); } else if (tsM === amanha.getTime()) { mostrarAlerta(`🔔 AMANHÃ: ${m.tipo} p/ ${veiculo.modelo}.`, 'info'); } } catch(e) { console.error(`Erro data ${m.data}`, e); } });
-}
-
-// --- Event Listeners ---
-// Delegação para botões de AÇÃO
-controlesVeiculoEl.addEventListener('click', (event) => { const btn = event.target.closest('button[data-acao]'); if (btn) interagir(btn.dataset.acao); });
-// Submit ADD VEÍCULO
-formAddVeiculo.addEventListener('submit', (event) => { /* ... (código do listener formAddVeiculo da resposta anterior - não precisa mudar) ... */
-    event.preventDefault(); const tipo = tipoVeiculoInput.value; const modelo = modeloVeiculoInput.value.trim(); const cor = corVeiculoInput.value.trim(); const capStr = capacidadeVeiculoInput.value; if (!tipo || !modelo || !cor) { mostrarAlerta("Preencha Tipo, Modelo e Cor.", "erro"); return; } let novoVeiculo = null; try { switch (tipo) { case 'Carro': novoVeiculo = new Carro(modelo, cor); break; case 'CarroEsportivo': novoVeiculo = new CarroEsportivo(modelo, cor); break; case 'Caminhao': const cap = parseFloat(capStr); if (isNaN(cap) || cap <= 0) { mostrarAlerta("Capacidade inválida.", "erro"); capacidadeVeiculoInput.focus(); return; } novoVeiculo = new Caminhao(modelo, cor, cap); break; default: mostrarAlerta("Tipo inválido.", "erro"); return; } const novoId = adicionarVeiculoNaGaragem(novoVeiculo); if (novoId) { mostrarAlerta(`${tipo} "${modelo}" adicionado!`, "info"); formAddVeiculo.reset(); campoCapacidadeDiv.style.display = 'none'; tipoVeiculoInput.value = ""; selecionarVeiculo(novoId); } } catch (error) { console.error("Erro ao criar:", error); mostrarAlerta(`Erro: ${error.message}`, "erro"); }
+// Botões de Seleção de Veículo
+document.getElementById('btnSelCarro').addEventListener('click', () => {
+    veiculoSelecionado = meuCarro; // Atualiza a variável global
+    console.log("Selecionado: Carro Comum");
+    atualizarDisplay(); // Atualiza a interface para mostrar o carro comum
 });
-// Change TIPO VEÍCULO
-tipoVeiculoInput.addEventListener('change', () => { const ehCaminhao = tipoVeiculoInput.value === 'Caminhao'; campoCapacidadeDiv.style.display = ehCaminhao ? 'block' : 'none'; if (!ehCaminhao) capacidadeVeiculoInput.value = ''; });
-// Submit ADD MANUTENÇÃO
-formAddManutencao.addEventListener('submit', (event) => { /* ... (código do listener formAddManutencao da resposta anterior - não precisa mudar) ... */
-    event.preventDefault(); if (!veiculoAtual) { mostrarAlerta("Selecione veículo.", "erro"); return; } const data = dataManutencaoInput.value; const tipo = tipoServicoInput.value.trim(); const custoStr = custoManutencaoInput.value; const desc = descricaoManutencaoInput.value.trim(); if (!data || !tipo || custoStr === '') { mostrarAlerta("Preencha Data, Tipo e Custo.", "erro"); return; } try { const novaM = new Manutencao(data, tipo, custoStr, desc); if (novaM.validar()) { if (veiculoAtual.adicionarManutencao(novaM)) { mostrarAlerta("Manutenção adicionada!", "info"); formAddManutencao.reset(); verificarAgendamentosProximos(veiculoAtual); } } else { mostrarAlerta("Dados inválidos.", "erro"); } } catch (error) { console.error("Erro add manut:", error); mostrarAlerta(`Erro: ${error.message}`, "erro"); }
+
+document.getElementById('btnSelEsportivo').addEventListener('click', () => {
+    veiculoSelecionado = meuCarroEsportivo;
+    console.log("Selecionado: Carro Esportivo");
+    atualizarDisplay(); // Atualiza a interface para mostrar o esportivo
 });
-// Input CONTROLE VOLUME
-volumeControl.addEventListener('input', (e) => { volumeAtual = parseFloat(e.target.value); Object.values(sons).forEach(som => { if(som) som.volume = volumeAtual; }); });
 
-// --- Inicialização ---
-/** Roda quando o DOM está pronto. */
-function inicializarAplicacao() {
-    console.log("🚀 DOM pronto. Inicializando aplicação...");
-    carregarGaragem();
-    criarBotoesSelecaoVeiculo();
-    const ids = Object.keys(garagem);
-    // Seleciona o primeiro veículo OU atualiza a UI se já houver um selecionado (do carregamento)
-    if (ids.length > 0 && !idVeiculoAtual) {
-        selecionarVeiculo(ids[0]);
-    } else {
-        atualizarDisplayVeiculo(); // Garante que a UI esteja correta
-        if(veiculoAtual) verificarAgendamentosProximos(veiculoAtual); // Verifica lembretes se um veículo foi carregado
-    }
-    volumeControl.dispatchEvent(new Event('input')); // Aplica volume inicial
-    // Esconde capacidade se o primeiro veículo não for caminhão
-    if(!(veiculoAtual instanceof Caminhao)) campoCapacidadeDiv.style.display = 'none';
-    console.log("✅ Aplicação Pronta.");
-}
+document.getElementById('btnSelCaminhao').addEventListener('click', () => {
+    veiculoSelecionado = meuCaminhao;
+    console.log("Selecionado: Caminhão");
+    atualizarDisplay(); // Atualiza a interface para mostrar o caminhão
+});
 
-// Listener para iniciar tudo
-document.addEventListener('DOMContentLoaded', inicializarAplicacao);
+// Botões de Ação (Todos chamam a função 'interagir' passando a ação como string)
+document.getElementById('btnLigar').addEventListener('click', () => interagir('ligar'));
+document.getElementById('btnDesligar').addEventListener('click', () => interagir('desligar'));
+document.getElementById('btnAcelerar').addEventListener('click', () => interagir('acelerar'));
+document.getElementById('btnFrear').addEventListener('click', () => interagir('frear'));
+document.getElementById('btnAtivarTurbo').addEventListener('click', () => interagir('ativarTurbo'));
+document.getElementById('btnDesativarTurbo').addEventListener('click', () => interagir('desativarTurbo'));
+document.getElementById('btnCarregar').addEventListener('click', () => interagir('carregar'));
+document.getElementById('btnDescarregar').addEventListener('click', () => interagir('descarregar'));
+
+// --- INICIALIZAÇÃO ---
+// Chama a função de atualização uma vez quando a página carrega,
+// para garantir que a interface comece no estado correto (mostrando "Selecione um veículo").
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("Documento carregado. Inicializando interface.");
+    atualizarDisplay();
+});
