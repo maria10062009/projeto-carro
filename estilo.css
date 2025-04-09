@@ -1,120 +1,147 @@
-/* Estilos gerais para a página */
 body {
-    font-family: sans-serif; /* Define uma fonte padrão */
-    line-height: 1.6;      /* Espaçamento entre linhas para melhor leitura */
-    margin: 20px;          /* Margem externa para não colar nas bordas da janela */
-    background-color: #f4f4f4; /* Cor de fundo suave */
-    display: flex;         /* Usa Flexbox para alinhar os painéis */
-    flex-direction: column; /* Alinha os painéis verticalmente */
-    align-items: center;   /* Centraliza os painéis horizontalmente */
-    gap: 20px;             /* Espaço entre os painéis */
+    font-family: sans-serif;
+    line-height: 1.6;
+    margin: 20px;
+    background-color: #f4f4f4;
 }
 
-/* Estilo para os títulos */
+.container {
+    max-width: 900px;
+    margin: auto;
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
 h1, h2, h3 {
-    color: #333; /* Cor escura para os títulos */
+    color: #333;
+    margin-bottom: 10px;
 }
 
-/* Estilo para os painéis principais (Seleção e Controles) */
-.painel {
-    border: 1px solid #ccc;    /* Borda cinza claro */
-    padding: 20px;             /* Espaçamento interno */
-    border-radius: 8px;        /* Bordas arredondadas */
-    background-color: #fff;    /* Fundo branco */
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Sombra suave */
-    width: 80%;                /* Largura do painel */
-    max-width: 600px;          /* Largura máxima */
+/* Estilo dos 'cards' para cada seção */
+.card {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
-/* Estilo geral para os botões */
-button {
-    padding: 10px 15px; /* Espaçamento interno do botão */
-    margin: 5px;        /* Margem externa do botão */
-    cursor: pointer;    /* Mostra a mãozinha ao passar o mouse */
-    border: none;       /* Remove a borda padrão */
-    border-radius: 5px; /* Bordas arredondadas */
-    background-color: #007bff; /* Cor de fundo azul */
-    color: white;       /* Cor do texto branca */
-    font-size: 1em;     /* Tamanho da fonte */
-    transition: background-color 0.3s ease; /* Animação suave na cor de fundo */
+/* Formulários */
+form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
 }
 
-/* Efeito ao passar o mouse sobre o botão */
-button:hover {
-    background-color: #0056b3; /* Azul um pouco mais escuro */
+form input[type="text"],
+form input[type="number"],
+form input[type="date"],
+form select,
+form textarea {
+    width: calc(100% - 22px); /* Ajusta padding e borda */
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
 }
 
-/* Estilo para botões desabilitados (opcional, pode ser usado via JS) */
-button:disabled {
-    background-color: #ccc; /* Cor cinza para indicar inatividade */
-    cursor: not-allowed;  /* Cursor de "não permitido" */
+form button {
+    background-color: #5cb85c;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
 }
 
-/* Estilo para a área onde as informações do veículo são exibidas */
-#informacoesVeiculo {
-    background-color: #e9ecef; /* Fundo cinza claro para destacar */
-    padding: 15px;             /* Espaçamento interno */
-    margin-top: 15px;          /* Margem acima */
-    margin-bottom: 15px;       /* Margem abaixo */
-    border-radius: 5px;        /* Bordas arredondadas */
-    min-height: 100px;         /* Altura mínima para evitar que "encolha" muito */
-    border: 1px solid #ced4da; /* Borda sutil */
+form button:hover {
+    background-color: #4cae4c;
 }
 
-/* Estilo para campos de texto numérico */
-input[type="number"] {
-    padding: 8px;        /* Espaçamento interno */
-    margin: 0 5px;       /* Margem horizontal */
-    border: 1px solid #ccc; /* Borda */
-    border-radius: 4px;   /* Borda arredondada */
-    width: 80px;         /* Largura fixa */
+/* Display da Garagem */
+#garage-display .vehicle {
+    border: 1px solid #eee;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+    position: relative; /* Para posicionar botões de detalhes */
 }
 
-/* Estilo para os containers de controles específicos */
-.controles-especificos {
-    margin-top: 15px;         /* Espaço acima */
-    padding-top: 10px;        /* Espaço interno acima */
-    border-top: 1px dashed #ccc; /* Linha tracejada para separar */
-    display: none;            /* Começam escondidos por padrão */
+#garage-display .vehicle h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #0056b3;
 }
 
-/* --- Estilos para Feedback Visual --- */
-
-/* Estilo para o texto "Ligado" */
-.status-ligado {
-    color: #28a745; /* Verde */
-    font-weight: bold; /* Negrito */
+#garage-display .vehicle p {
+    margin: 5px 0;
+    font-size: 0.95em;
 }
 
-/* Estilo para o texto "Desligado" */
-.status-desligado {
-    color: #dc3545; /* Vermelho */
-    font-weight: bold; /* Negrito */
+#garage-display .vehicle .status {
+    font-weight: bold;
 }
 
-/* Estilo para o container do velocímetro */
-.velocimetro {
-    width: 100%;                /* Ocupa toda a largura disponível */
-    height: 20px;               /* Altura da barra */
-    background-color: #e9ecef;  /* Cor de fundo da barra vazia */
-    border-radius: 5px;         /* Bordas arredondadas */
-    margin-top: 10px;           /* Espaço acima */
-    overflow: hidden;           /* Esconde o que passar da borda */
-    border: 1px solid #adb5bd;  /* Borda sutil */
-    box-sizing: border-box;     /* Garante que padding/border não aumentem o tamanho total */
+#garage-display .vehicle .status.ligado {
+    color: green;
 }
 
-/* Estilo para a barra interna do velocímetro (que representa a velocidade) */
-.velocimetro-barra {
-    height: 100%;               /* Ocupa toda a altura do container */
-    background-color: #17a2b8;  /* Cor da barra (ciano) */
-    width: 0%;                  /* Começa com largura 0% (parado) */
-    transition: width 0.4s ease-out; /* Animação suave ao mudar a largura */
-    text-align: right;          /* Alinha o texto (velocidade) à direita */
-    color: white;               /* Cor do texto na barra */
-    font-size: 12px;            /* Tamanho da fonte do texto */
-    line-height: 20px;          /* Centraliza o texto verticalmente (igual à altura) */
-    padding-right: 5px;         /* Espacinho à direita do texto */
-    box-sizing: border-box;     /* Garante que padding não aumente a largura */
-    white-space: nowrap;        /* Impede que o texto quebre linha */
+#garage-display .vehicle .status.desligado {
+    color: red;
+}
+
+#garage-display .vehicle .actions button,
+#vehicle-details .actions button {
+    margin-right: 5px;
+    margin-top: 5px;
+    padding: 5px 8px;
+    font-size: 0.9em;
+    cursor: pointer;
+}
+
+#vehicle-details .actions button.turbo-active {
+    background-color: #ffc107; /* Amarelo para turbo ativo */
+    border-color: #ffc107;
+}
+
+
+/* Seção de Detalhes e Manutenção */
+#details-section h3 {
+    margin-top: 20px;
+    border-top: 1px solid #eee;
+    padding-top: 15px;
+}
+
+#maintenance-history li,
+#future-appointments-list li {
+    background-color: #e9ecef;
+    padding: 8px;
+    margin-bottom: 5px;
+    border-radius: 3px;
+    font-size: 0.9em;
+}
+
+#future-appointments-list li {
+    background-color: #d1ecf1; /* Azul claro para agendamentos */
+}
+
+/* Botão para ver detalhes/manutenção */
+.details-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 5px 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.details-button:hover {
+    background-color: #0056b3;
 }
