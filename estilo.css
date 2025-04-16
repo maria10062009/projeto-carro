@@ -1,147 +1,337 @@
-body {
+/**
+ * style.css - Folha de Estilos para Garagem Inteligente v4.0
+ */
+
+/* --- Estilos Globais e Reset Básico --- */
+
+/**
+ * Estilos aplicados ao elemento <body>, definindo padrões para toda a página.
+ */
+ body {
+    /* Define uma família de fontes sans-serif padrão (como Arial, Helvetica, etc.) */
     font-family: sans-serif;
+    /* Define a altura da linha para 1.6 vezes o tamanho da fonte, melhorando a legibilidade do texto */
     line-height: 1.6;
+    /* Adiciona uma margem de 20 pixels em todos os lados do corpo da página */
     margin: 20px;
+    /* Define uma cor de fundo cinza claro para a página */
     background-color: #f4f4f4;
 }
 
+/* --- Estilos de Layout e Contêineres --- */
+
+/**
+ * Estilo para um contêiner principal (se utilizado).
+ * Limita a largura, centraliza, define fundo branco, padding, bordas arredondadas e sombra.
+ * Nota: No HTML fornecido anteriormente, esta classe não parecia estar em uso direto,
+ * mas está definida aqui. Pode ser para uso futuro ou um remanescente.
+ */
 .container {
+    /* Largura máxima do contêiner */
     max-width: 900px;
+    /* Centraliza o contêiner horizontalmente na página */
     margin: auto;
+    /* Cor de fundo branca */
     background: #fff;
+    /* Espaçamento interno de 20 pixels */
     padding: 20px;
+    /* Bordas arredondadas */
     border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    /* Adiciona uma sombra sutil para dar profundidade */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Deslocamento X=0, Y=2px, Blur=5px, Cor=preto com 10% opacidade */
 }
 
+/* --- Estilos de Tipografia --- */
+
+/**
+ * Estilos básicos para os elementos de título h1, h2 e h3.
+ */
 h1, h2, h3 {
-    color: #333;
+    /* Define a cor do texto dos títulos */
+    color: #333; /* Cinza escuro */
+    /* Adiciona uma margem inferior para separá-los do conteúdo seguinte */
     margin-bottom: 10px;
 }
 
-/* Estilo dos 'cards' para cada seção */
-.card {
+/* --- Estilos de Componentes Comuns --- */
+
+/**
+ * Estilo para os 'cards' ou 'painéis' que contêm o conteúdo de cada seção/aba.
+ * Aplica-se a elementos com a classe 'card' (e/ou 'painel' conforme o HTML).
+ */
+.card, .painel { /* Aplicando a .painel também, pois é usado no HTML */
+    /* Cor de fundo branca */
     background-color: #fff;
+    /* Borda sólida cinza claro */
     border: 1px solid #ddd;
+    /* Bordas levemente arredondadas */
     border-radius: 5px;
+    /* Espaçamento interno */
     padding: 15px;
+    /* Margem inferior para separar cards empilhados verticalmente */
     margin-bottom: 20px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    /* Sombra muito sutil para destacar o card do fundo */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05); /* Deslocamento X=0, Y=1px, Blur=3px, Cor=preto com 5% opacidade */
 }
 
-/* Formulários */
+/* --- Estilos de Formulários --- */
+
+/**
+ * Estilos para os rótulos (<label>) dentro de formulários.
+ */
 form label {
+    /* Faz o rótulo ocupar toda a largura disponível, colocando-o acima do campo */
     display: block;
+    /* Espaçamento abaixo do rótulo */
     margin-bottom: 5px;
+    /* Torna o texto do rótulo em negrito */
     font-weight: bold;
 }
 
+/**
+ * Estilos comuns para campos de entrada de texto, número, data, caixas de seleção e áreas de texto.
+ */
 form input[type="text"],
 form input[type="number"],
 form input[type="date"],
 form select,
 form textarea {
-    width: calc(100% - 22px); /* Ajusta padding e borda */
+    /* Define a largura para ocupar quase todo o espaço do contêiner pai. */
+    /* 'calc(100% - 22px)' desconta o padding horizontal (10px * 2) e a borda (1px * 2) para evitar overflow. */
+    width: calc(100% - 22px);
+    /* Espaçamento interno do campo */
     padding: 10px;
+    /* Margem inferior para separar campos empilhados */
     margin-bottom: 10px;
+    /* Borda cinza padrão */
     border: 1px solid #ccc;
+    /* Bordas arredondadas */
     border-radius: 4px;
 }
 
-form button {
+
+/**
+ * Estilo padrão para botões (`<button>`) dentro de formulários (`<form>`).
+ * Este estilo é geralmente usado para botões de submissão ou ação principal do formulário.
+ */
+ form button {
+    /* Cor de fundo verde (indicando sucesso ou ação positiva) */
     background-color: #5cb85c;
+    /* Cor do texto branca para contraste com o fundo verde */
     color: white;
+    /* Espaçamento interno: 10px em cima/baixo, 15px nos lados */
     padding: 10px 15px;
+    /* Remove a borda padrão do botão */
     border: none;
+    /* Bordas arredondadas */
     border-radius: 4px;
+    /* Muda o cursor para uma mãozinha ao passar sobre o botão, indicando clicabilidade */
     cursor: pointer;
+    /* Define o tamanho da fonte padrão (1em = tamanho da fonte do elemento pai) */
     font-size: 1em;
 }
 
+/**
+ * Estilo para o estado 'hover' (quando o mouse passa por cima) dos botões de formulário.
+ */
 form button:hover {
+    /* Escurece ligeiramente a cor de fundo para dar feedback visual */
     background-color: #4cae4c;
 }
 
-/* Display da Garagem */
+/* --- Estilos da Exibição da Garagem (Lista de Veículos) --- */
+/* Nota: O HTML fornecido usa #listaVeiculosGaragem button, não #garage-display .vehicle.
+   Estes estilos podem ser de uma versão anterior ou não estarem diretamente aplicados
+   à estrutura HTML atual. Mantidos aqui para referência. */
+
+/**
+ * Estilo para cada item individual de veículo dentro do display da garagem.
+ * (Seletor pode precisar ser ajustado para corresponder ao HTML real, ex: #listaVeiculosGaragem button)
+ */
 #garage-display .vehicle {
+    /* Borda sólida muito clara */
     border: 1px solid #eee;
+    /* Espaçamento interno */
     padding: 15px;
+    /* Margem inferior para separar os itens da lista */
     margin-bottom: 10px;
+    /* Bordas arredondadas */
     border-radius: 5px;
+    /* Cor de fundo levemente acinzentada */
     background-color: #f9f9f9;
-    position: relative; /* Para posicionar botões de detalhes */
+    /* Define o contexto de posicionamento para elementos filhos posicionados absolutamente (como .details-button, se usado) */
+    position: relative;
 }
 
+/**
+ * Estilo para títulos de nível 4 (`<h4>`) dentro de um item de veículo.
+ * (Usado se cada veículo fosse representado por uma div com um título h4)
+ */
 #garage-display .vehicle h4 {
+    /* Remove a margem superior padrão do h4 */
     margin-top: 0;
+    /* Margem inferior para separar do texto seguinte */
     margin-bottom: 10px;
+    /* Cor do texto azul escuro */
     color: #0056b3;
 }
 
+/**
+ * Estilo para parágrafos (`<p>`) dentro de um item de veículo.
+ */
 #garage-display .vehicle p {
+    /* Margem vertical pequena */
     margin: 5px 0;
+    /* Tamanho da fonte ligeiramente menor que o padrão */
     font-size: 0.95em;
 }
 
+/**
+ * Estilo para elementos com a classe 'status' dentro de um item de veículo.
+ * (Usado para destacar o texto "Ligado"/"Desligado")
+ */
 #garage-display .vehicle .status {
+    /* Torna o texto do status em negrito */
     font-weight: bold;
 }
 
+/**
+ * Estilo específico para o status quando o veículo está ligado.
+ * Aplica-se a elementos com as classes 'status' E 'ligado'.
+ */
 #garage-display .vehicle .status.ligado {
+    /* Define a cor do texto como verde */
     color: green;
 }
 
+/**
+ * Estilo específico para o status quando o veículo está desligado.
+ * Aplica-se a elementos com as classes 'status' E 'desligado'.
+ */
 #garage-display .vehicle .status.desligado {
+    /* Define a cor do texto como vermelho */
     color: red;
 }
 
-#garage-display .vehicle .actions button,
-#vehicle-details .actions button {
-    margin-right: 5px;
-    margin-top: 5px;
-    padding: 5px 8px;
-    font-size: 0.9em;
-    cursor: pointer;
-}
-
-#vehicle-details .actions button.turbo-active {
-    background-color: #ffc107; /* Amarelo para turbo ativo */
-    border-color: #ffc107;
-}
-
-
-/* Seção de Detalhes e Manutenção */
-#details-section h3 {
-    margin-top: 20px;
-    border-top: 1px solid #eee;
-    padding-top: 15px;
-}
-
-#maintenance-history li,
-#future-appointments-list li {
-    background-color: #e9ecef;
-    padding: 8px;
-    margin-bottom: 5px;
-    border-radius: 3px;
-    font-size: 0.9em;
-}
-
-#future-appointments-list li {
-    background-color: #d1ecf1; /* Azul claro para agendamentos */
-}
-
-/* Botão para ver detalhes/manutenção */
-.details-button {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    padding: 5px 10px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-.details-button:hover {
-    background-color: #0056b3;
-}
+/**
+ * Estilos para botões (`<button>`) dentro de uma seção de ações (`.actions`).
+ * Aplica-se tanto a botões na lista de garagem (`#garage-display`) quanto na
+ * seção de detalhes (`#vehicle-details`).
+ * Nota: A estrutura HTML atual pode usar `.acoes-container` em vez de `.actions`.
+ *       Estes estilos são mantidos para referência ou compatibilidade.
+ */
+ #garage-display .vehicle .actions button,
+ #vehicle-details .actions button {
+     /* Margem à direita para espaçar botões horizontalmente */
+     margin-right: 5px;
+     /* Margem superior para espaçar botões verticalmente se quebrarem linha */
+     margin-top: 5px;
+     /* Espaçamento interno menor para botões de ação */
+     padding: 5px 8px;
+     /* Tamanho da fonte ligeiramente menor */
+     font-size: 0.9em;
+     /* Cursor de mão para indicar clicabilidade */
+     cursor: pointer;
+ }
+ 
+ /**
+  * Estilo específico para um botão de ação na seção de detalhes
+  * quando ele representa um estado ativo, como o turbo ligado.
+  * Aplica-se a botões com a classe `turbo-active` dentro de `.actions` em `#vehicle-details`.
+  */
+ #vehicle-details .actions button.turbo-active {
+     /* Cor de fundo amarela para destacar o estado ativo */
+     background-color: #ffc107;
+     /* Define a cor da borda igual à cor de fundo (se houver borda) */
+     border-color: #ffc107;
+     /* Poderia adicionar 'color: #333;' para melhor contraste do texto em fundo amarelo */
+ }
+ 
+ 
+ /* --- Estilos da Seção de Detalhes e Manutenção (Geral) --- */
+ /* Nota: A estrutura HTML atual usa a aba #tab-details e containers específicos
+    dentro dela, como .manutencao-container. #details-section pode ser um
+    seletor de uma versão anterior. */
+ 
+ /**
+  * Estilo para títulos de nível 3 (`<h3>`) dentro da seção de detalhes.
+  * (Seletor `#details-section` pode precisar ser ajustado para `#tab-details`)
+  */
+ #details-section h3 {
+     /* Margem superior para separar dos elementos acima */
+     margin-top: 20px;
+     /* Adiciona uma linha divisória clara acima do título */
+     border-top: 1px solid #eee;
+     /* Espaçamento acima do texto do título, abaixo da linha */
+     padding-top: 15px;
+ }
+ 
+ /**
+  * Estilo para itens de lista (`<li>`) dentro das listas de histórico
+  * (`#maintenance-history`) e agendamentos (`#future-appointments-list`).
+  * Nota: O HTML atual usa `#historicoLista` e `#agendamentosLista`.
+  *       Aplicando a todos para garantir compatibilidade ou cobrir ambos os casos.
+  */
+ #maintenance-history li,
+ #future-appointments-list li,
+ #historicoLista li,       /* Incluindo IDs do HTML atual */
+ #agendamentosLista li {   /* Incluindo IDs do HTML atual */
+     /* Cor de fundo cinza claro para os itens */
+     background-color: #e9ecef;
+     /* Espaçamento interno */
+     padding: 8px;
+     /* Margem inferior para separar itens na lista */
+     margin-bottom: 5px;
+     /* Bordas levemente arredondadas */
+     border-radius: 3px;
+     /* Tamanho da fonte menor */
+     font-size: 0.9em;
+     /* Remove o marcador de lista padrão (bolinha/número) */
+     list-style: none; /* Adicionado para garantir que não haja marcadores */
+ }
+ 
+ /**
+  * Estilo específico para itens de lista (`<li>`) dentro da lista de agendamentos futuros.
+  * Sobrescreve a cor de fundo definida anteriormente.
+  */
+ #future-appointments-list li,
+ #agendamentosLista li { /* Incluindo ID do HTML atual */
+     /* Cor de fundo azul claro, diferenciando agendamentos de histórico */
+     background-color: #d1ecf1;
+ }
+ 
+ /* --- Estilos de Componentes Específicos (Exemplo) --- */
+ 
+ /**
+  * Estilo para um botão de "Detalhes" que poderia estar posicionado
+  * dentro de cada item da lista de veículos (se a UI fosse diferente).
+  * Este botão permitiria ao usuário ver mais informações ou ir para a seção de manutenção.
+  */
+ .details-button {
+     /* Posicionamento absoluto relativo ao contêiner pai (que deve ter `position: relative;`) */
+     position: absolute;
+     /* Distância do topo do contêiner pai */
+     top: 10px;
+     /* Distância da direita do contêiner pai */
+     right: 10px;
+     /* Espaçamento interno */
+     padding: 5px 10px;
+     /* Cor de fundo azul */
+     background-color: #007bff;
+     /* Cor do texto branca */
+     color: white;
+     /* Remove a borda padrão */
+     border: none;
+     /* Bordas arredondadas */
+     border-radius: 4px;
+     /* Cursor de mão */
+     cursor: pointer;
+ }
+ 
+ /**
+  * Estilo para o estado 'hover' do botão de detalhes.
+  */
+ .details-button:hover {
+     /* Escurece a cor de fundo azul no hover */
+     background-color: #0056b3;
+ }
