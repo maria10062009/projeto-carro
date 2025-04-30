@@ -1,0 +1,38 @@
+{
+    "Fusca": {
+      "ano_fabricacao": 1975,
+      "motor": "1300cc Refrigerado a Ar",
+      "cambio": "Manual 4 marchas",
+      "consumo_urbano_medio_km_l": 8.5,
+      "curiosidade": "Um ícone da indústria automobilística mundial."
+    },
+    "Ferrari F40": {
+      "ano_fabricacao": 1989,
+      "motor": "2.9L V8 Bi-Turbo",
+      "potencia_cv": 478,
+      "zero_a_cem_kmh_s": 4.1,
+      "curiosidade": "O último carro aprovado pessoalmente por Enzo Ferrari."
+    },
+    "Opala": {
+      "ano_fabricacao": 1988,
+      "motor": "4.1L 6 Cilindros",
+      "cambio": "Manual 5 marchas (Diplomata)",
+      "apelido": "Opalão",
+      "curiosidade": "Um clássico brasileiro muito querido e potente."
+    },
+    "Scania R450": {
+      "ano_fabricacao": 2021,
+      "motor": "DC13 13L 6 Cilindros",
+      "torque_nm": 2350,
+      "tipo_transmissao": "Opticruise Automatizada",
+      "capacidade_tracao_ton": 60,
+      "curiosidade": "Projetado para longas distâncias com eficiência e conforto."
+    },
+    "Fiat Uno": {
+        "ano_fabricacao": 1995,
+        "motor": "1.0 Fire",
+        "cambio": "Manual 5 marchas",
+        "apelido": "Botinha Ortopédica / Escada no Teto",
+        "curiosidade": "Famoso pela robustez, economia e por 'subir paredes'."
+    }
+  }

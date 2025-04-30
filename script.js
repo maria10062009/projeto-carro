@@ -206,13 +206,24 @@ class Carro {
              }
              return false; // Velocidade não aumentou
         }
+        // Habilita/desabilita botões de Ações Comuns com base no estado atual do veículo.
+    btnLigar.disabled = veiculo.ligado;
+    btnDesligar.disabled = !veiculo.ligado || veiculo.velocidade > 0;
+    // <<< LINHA MODIFICADA AQUI >>>
+    btnAcelerar.disabled = !veiculo.ligado || veiculo.velocidade >= veiculo.velocidadeMaxima; // Desabilita se desligado OU na vel. máxima.
+    btnFrear.disabled = veiculo.velocidade === 0;
+    btnBuzinar.disabled = false;
+    
         // Atualiza a velocidade
         this.velocidade = novaVelocidade;
         console.log(`LOG: ${this.modelo}: Acelerando para ${this.velocidade.toFixed(0)} km/h.`);
         tocarSom('somAcelerar'); // Toca som de acelerar
         this.notificarAtualizacao();
         return true; // Velocidade aumentou
+        
     }
+
+
 
     /**
      * @method frear
@@ -235,6 +246,65 @@ class Carro {
         this.notificarAtualizacao();
         return true; // Ação de frear foi realizada (mesmo que o decremento seja 0)
     }
+
+    /**
+ * @method acelerar
+ * @description Aumenta a velocidade do carro, respeitando a velocidade máxima.
+ * @param {number} [incremento=10] - O valor a ser adicionado à velocidade atual. Padrão 10.
+ * @returns {boolean} Retorna true se a velocidade aumentou, false caso contrário (desligado, já na máxima, ou incremento 0).
+ */
+acelerar(incremento = 10) {
+    // Verifica se o carro está desligado
+    if (!this.ligado) {
+        this.alerta("Ligue o veículo para acelerar!", 'erro');
+        tocarSom('somErro');
+        return false; // Não pode acelerar desligado
+    }
+    // Calcula o incremento real (garante que não seja negativo)
+    const inc = Math.max(0, incremento);
+    // Calcula a nova velocidade, limitada pela velocidade máxima
+    // Math.min pega o menor valor entre (velocidade atual + incremento) e a velocidade máxima
+    const novaVelocidade = Math.min(this.velocidade + inc, this.velocidadeMaxima);
+
+    // Verifica se a velocidade realmente mudou
+    if (novaVelocidade === this.velocidade) {
+         // Se não mudou, verifica se é porque atingiu a máxima
+         if(this.velocidade === this.velocidadeMaxima) {
+             this.alerta("Velocidade máxima atingida!", 'aviso');
+         } else {
+             // Ou se o incremento foi zero ou muito pequeno para mudar (em casos futuros com float)
+             // console.log(`LOG: ${this.modelo}: Tentativa de aceleração sem efeito.`); // Log opcional
+         }
+         return false; // Velocidade não aumentou
+    }
+    // Atualiza a velocidade do carro
+    this.velocidade = novaVelocidade;
+    console.log(`LOG: ${this.modelo}: Acelerando para ${this.velocidade.toFixed(0)} km/h.`);
+    tocarSom('somAcelerar'); // Toca som de acelerar
+    this.notificarAtualizacao(); // Avisa a interface e salva
+    return true; // Velocidade aumentou
+}
+desligar() {
+    // Verifica se o carro já está desligado
+    if (!this.ligado) {
+        this.alerta("Veículo já está desligado.", 'aviso');
+        return false;
+    }
+    // <<< NOVA VERIFICAÇÃO AQUI >>>
+    // Verifica se o carro está em movimento
+    if (this.velocidade > 0) {
+        this.alerta("Pare o veículo antes de desligar!", 'erro');
+        tocarSom('somErro'); // Toca som de erro
+        return false; // Impede o desligamento
+    }
+    // Muda o estado para desligado (se passou nas verificações)
+    this.ligado = false;
+    console.log(`LOG: ${this.modelo}: Desligado.`);
+    tocarSom('somDesligar'); // Toca som de desligar
+    this.notificarAtualizacao();
+    return true;
+}
+
 
     /**
      * @method buzinar
@@ -314,27 +384,23 @@ class Carro {
             // Conta o número de registros passados e futuros
             const historicoCount = this.getHistoricoPassado().length;
             const agendamentosCount = this.getAgendamentosFuturos().length;
-
+    
             // Retorna a string HTML usando template literals
-            // Inclui imagem, ID, modelo, cor (com amostra visual), status (com indicador visual),
-            // velocidade atual/máxima e contagem de manutenções/agendamentos.
-            // onerror na imagem: se a imagem falhar ao carregar, ela é ocultada e um aviso é logado.
             return `
                 <img src="${this.imagem}" alt="Imagem de ${this.modelo}" class="veiculo-imagem" onerror="this.style.display='none'; console.warn('Imagem não encontrada: ${this.imagem}')">
                 <p><strong>ID:</strong> <small>${this.id}</small></p>
                 <p><strong>Modelo:</strong> ${this.modelo}</p>
                 <p><strong>Cor:</strong> <span class="color-swatch" style="background-color: ${this.cor};" title="${this.cor}"></span> ${this.cor}</p>
                 <p class="${statusClass}"><span class="status-indicator"></span> <span>${statusTexto}</span></p>
+                {/* <<< LINHA ADICIONADA/MODIFICADA AQUI >>> */}
                 <p><strong>Velocidade:</strong> ${this.velocidade.toFixed(0)} km/h (Máx: ${this.velocidadeMaxima} km/h)</p>
                 <p><em>Manutenções: ${historicoCount} | Agendamentos: ${agendamentosCount}</em></p>
             `;
         } catch (e) {
-            // Loga o erro e retorna uma mensagem de erro em HTML
             console.error(`ERRO ao exibir infos ${this.modelo}:`, e);
             return `<p class="error-text">Erro ao exibir informações.</p>`;
         }
     }
-
     /**
      * @method alerta
      * @description Exibe uma notificação flutuante para o usuário, prefixada com o modelo do carro.
@@ -1968,6 +2034,7 @@ if (volumeSlider) {
         // ou estar no final do <body>). Neste caso, chama `inicializarApp` imediatamente.
         inicializarApp();
     }
+    
 
 })(); // Fim da IIFE (Immediately Invoked Function Expression).
       // Isso garante que todo o código dentro dela tenha seu próprio escopo,
