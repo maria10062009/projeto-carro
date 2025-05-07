@@ -336,3 +336,102 @@ form button:hover {
      background-color: #0056b3;
  }
  
+ /* --- Estilos da Previsão do Tempo --- */
+#weather-forecast-container {
+    background-color: #e9ecef; /* Um cinza claro, diferente do fundo da página */
+    padding: 10px 15px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+#weather-forecast-container h2 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1.2em;
+    color: #343a40; /* Cor mais escura para o título */
+}
+
+.weather-forecast-items {
+    display: flex; /* Organiza os itens da previsão em linha */
+    flex-wrap: wrap; /* Permite que os itens quebrem para a próxima linha se não couberem */
+    gap: 10px; /* Espaçamento entre os itens da previsão */
+    justify-content: space-around; /* Distribui os itens com espaço ao redor */
+}
+
+.weather-item {
+    background-color: #fff;
+    border: 1px solid #ced4da; /* Borda sutil */
+    border-radius: 4px;
+    padding: 10px;
+    text-align: center;
+    min-width: 100px; /* Largura mínima para cada item */
+    flex-basis: 120px; /* Base de largura para cada item, permite encolher/crescer */
+    flex-grow: 1;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.weather-item img {
+    width: 50px; /* Tamanho do ícone do tempo */
+    height: 50px;
+    margin-bottom: 5px;
+}
+
+.weather-item p {
+    margin: 2px 0;
+    font-size: 0.85em;
+}
+
+.weather-item .date {
+    font-weight: bold;
+    font-size: 0.9em;
+    color: #0056b3;
+}
+
+.weather-item .temp {
+    font-size: 1em;
+    font-weight: bold;
+}
+
+/* Estilo para placeholder de erro/carregamento na previsão */
+#weather-forecast-display .placeholder-text,
+#weather-forecast-display .error-text {
+    width: 100%;
+    text-align: center;
+    color: #6c757d;
+}
+#weather-forecast-display .error-text {
+    color: #dc3545; /* Vermelho para erros */
+}
+
+/* Ajuste no cabeçalho principal para acomodar melhor os elementos */
+.main-header {
+    display: flex;
+    flex-wrap: wrap; /* Permite que os itens quebrem linha */
+    justify-content: space-between; /* Espaça os blocos principais */
+    align-items: center; /* Alinha verticalmente os itens */
+    gap: 15px; /* Espaçamento entre os blocos do cabeçalho */
+    padding-bottom: 15px;
+    border-bottom: 2px solid #0056b3; /* Linha azul para separar o header */
+}
+
+.main-header h1 {
+    flex-basis: 100%; /* Título ocupa a largura total na primeira linha */
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+#weather-forecast-container {
+    flex-basis: 100%; /* Container do tempo ocupa largura total */
+    order: 1; /* Faz o tempo aparecer depois do H1 e antes da navegação */
+    margin-bottom: 15px; /* Espaço abaixo do tempo */
+}
+.main-header .tab-navigation {
+   order: 2; /* Navegação depois do tempo */
+   flex-grow: 1; /* Permite que a navegação ocupe espaço disponível */
+}
+.main-header .volume-control {
+    order: 3; /* Controle de volume por último */
+}
+
+/* ... (resto do seu CSS) ... */

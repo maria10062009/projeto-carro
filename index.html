@@ -4,7 +4,7 @@
     <meta charset="UTF-8"> <!-- Define a codificação de caracteres para UTF-8, essencial para suportar acentos e caracteres especiais -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Configura a viewport para que a página se adapte corretamente a diferentes tamanhos de tela (design responsivo) -->
     <title>Garagem Inteligente v4.0 - Feedback Interativo</title> <!-- Define o título que será exibido na aba/janela do navegador -->
-    <link rel="stylesheet" href="style.css"> <!-- Vincula o arquivo CSS externo (style.css) para aplicar estilos visuais à página -->
+    <link rel="stylesheet" href="estilo.css"> <!-- Vincula o arquivo CSS externo (style.css) para aplicar estilos visuais à página -->
     <link rel="icon" href="images/favicon.png" type="image/png"> <!-- Define o ícone (favicon) da página, geralmente exibido na aba do navegador -->
 </head>
 <body>
@@ -13,6 +13,15 @@
     <!-- A tag <header> agrupa o conteúdo introdutório ou de navegação do topo da página -->
     <header class="main-header">
         <h1>Garagem Inteligente v4.0</h1> <!-- Título principal da página, semanticamente importante (nível 1) -->
+
+        <!-- Previsão do Tempo -->
+        <div id="weather-forecast-container">
+            <div class="weather-city-input-container">
+                <label for="cityInput">Cidade:</label>
+                <input type="text" id="cityInput" placeholder="Digite a cidade e pressione Enter">
+                <button id="fetchWeatherBtn" title="Buscar previsão para a cidade digitada">Buscar</button>
+            </div>
+        </div>
 
         <!-- Navegação Principal por Abas -->
         <!-- A tag <nav> representa uma seção de links de navegação -->
@@ -46,9 +55,8 @@
     </header>
 
     <!-- O restante do corpo da página (<body>) continua abaixo... -->
-    <!-- ... -->
-</body>
-</html>
+    <!-- ... (todo o seu <main>, <div id="notificacoes">, <audio>, <footer>, <script>) ... -->
+    <!-- ... (COPIE O RESTANTE DO SEU HTML EXISTENTE AQUI) ... -->
 
         <!-- Conteúdo Principal da Página -->
     <!-- A tag <main> representa o conteúdo principal e dominante do <body> do documento. -->
@@ -128,8 +136,6 @@
         </section> <!-- Fim da seção tab-add -->
 
         <!-- Outras seções/abas (como 'tab-garage', 'tab-details') continuam aqui... -->
-        <!-- ... -->
-    </main> <!-- Fim da área de conteúdo principal -->
               <!-- Seção/Aba: Minha Garagem -->
         <!-- 'id="tab-garage"': Identificador da seção. -->
         <!-- 'class="tab-pane active"': Classe comum dos painéis e 'active' indica que esta aba é visível por padrão. -->
