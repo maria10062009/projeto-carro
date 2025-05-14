@@ -1,437 +1,755 @@
 /**
- * style.css - Folha de Estilos para Garagem Inteligente v4.0
+ * style.css - Folha de Estilos para Garagem Inteligente v4.1 - Tema Pastel Aconchegante
  */
+
+/* --- Variáveis de Cores CSS (Tema Pastel Aconchegante) --- */
+:root {
+    --cor-fundo-principal: #fdf6f0; /* Creme muito claro, quase branco */
+    --cor-fundo-secundario: #f8eadd; /* Creme um pouco mais escuro/rosado */
+    --cor-fundo-painel: #ffffff;    /* Branco puro para painéis */
+    --cor-texto-principal: #5d544f; /* Marrom acinzentado escuro para texto principal */
+    --cor-texto-secundario: #8c7e76; /* Marrom acinzentado mais claro */
+    --cor-destaque-primario: #f5a9bc; /* Rosa pastel suave */
+    --cor-destaque-secundario: #a2d2ff; /* Azul bebê pastel */
+    --cor-sucesso: #b0e0e6;        /* Azul esverdeado pastel (Powder Blue) */
+    --cor-aviso: #ffe084;          /* Amarelo pastel suave */
+    --cor-erro: #ffb3ba;           /* Rosa avermelhado pastel */
+    --cor-borda: #e0d8d0;          /* Cinza claro com tom de bege para bordas */
+
+    --sombra-suave: 0 3px 8px rgba(93, 84, 79, 0.1); /* Sombra bem suave com tom do texto */
+    --sombra-media: 0 5px 15px rgba(93, 84, 79, 0.12);
+    --raio-borda: 10px; /* Bordas mais arredondadas para um look "fofo" */
+    --raio-borda-pequeno: 6px;
+}
 
 /* --- Estilos Globais e Reset Básico --- */
 
-/**
- * Estilos aplicados ao elemento <body>, definindo padrões para toda a página.
- */
- body {
-    /* Define uma família de fontes sans-serif padrão (como Arial, Helvetica, etc.) */
-    font-family: sans-serif;
-    /* Define a altura da linha para 1.6 vezes o tamanho da fonte, melhorando a legibilidade do texto */
-    line-height: 1.6;
-    /* Adiciona uma margem de 20 pixels em todos os lados do corpo da página */
-    margin: 20px;
-    /* Define uma cor de fundo cinza claro para a página */
-    background-color: #f4f4f4;
+body {
+    font-family: 'Nunito Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Fonte mais arredondada e amigável */
+    line-height: 1.65;
+    margin: 0;
+    padding: 20px;
+    background-color: var(--cor-fundo-principal);
+    color: var(--cor-texto-principal);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.app-wrapper {
+    width: 100%;
+    max-width: 1000px; /* Um pouco menor para um feel mais contido */
 }
 
 /* --- Estilos de Layout e Contêineres --- */
-
-/**
- * Estilo para um contêiner principal (se utilizado).
- * Limita a largura, centraliza, define fundo branco, padding, bordas arredondadas e sombra.
- * Nota: No HTML fornecido anteriormente, esta classe não parecia estar em uso direto,
- * mas está definida aqui. Pode ser para uso futuro ou um remanescente.
- */
-.container {
-    /* Largura máxima do contêiner */
-    max-width: 900px;
-    /* Centraliza o contêiner horizontalmente na página */
-    margin: auto;
-    /* Cor de fundo branca */
-    background: #fff;
-    /* Espaçamento interno de 20 pixels */
+.container { /* Se usado para seções específicas */
+    max-width: 850px;
+    margin: 20px auto;
+    background: var(--cor-fundo-painel); /* Painéis brancos */
     padding: 20px;
-    /* Bordas arredondadas */
-    border-radius: 8px;
-    /* Adiciona uma sombra sutil para dar profundidade */
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Deslocamento X=0, Y=2px, Blur=5px, Cor=preto com 10% opacidade */
+    border-radius: var(--raio-borda);
+    box-shadow: var(--sombra-suave);
 }
 
 /* --- Estilos de Tipografia --- */
+h1, h2, h3, h4, h5, h6 {
+    color: var(--cor-texto-principal);
+    margin-top: 0;
+    margin-bottom: 12px; /* Margem inferior um pouco menor */
+    font-weight: 700; /* Um pouco mais de peso para destaque */
+}
 
-/**
- * Estilos básicos para os elementos de título h1, h2 e h3.
- */
-h1, h2, h3 {
-    /* Define a cor do texto dos títulos */
-    color: #333; /* Cinza escuro */
-    /* Adiciona uma margem inferior para separá-los do conteúdo seguinte */
+h1 {
+    font-size: 2em; /* Um pouco menor */
+    color: var(--cor-destaque-primario); /* Título principal em rosa pastel */
+    text-align: center;
+    padding-bottom: 8px;
+    border-bottom: 2px dashed var(--cor-destaque-primario); /* Borda tracejada "fofa" */
+    margin-bottom: 20px;
+}
+
+h2 {
+    font-size: 1.6em;
+    color: var(--cor-destaque-secundario); /* H2 em azul bebê */
+}
+
+h3 {
+    font-size: 1.3em;
+    border-bottom: 1px solid var(--cor-borda);
+    padding-bottom: 6px;
+    font-weight: 600;
+}
+
+p {
     margin-bottom: 10px;
+    color: var(--cor-texto-secundario);
+}
+
+a {
+    color: var(--cor-destaque-primario);
+    text-decoration: none;
+    font-weight: 600;
+}
+a:hover {
+    color: #e58ca0; /* Rosa um pouco mais escuro no hover */
+    text-decoration: underline;
 }
 
 /* --- Estilos de Componentes Comuns --- */
-
-/**
- * Estilo para os 'cards' ou 'painéis' que contêm o conteúdo de cada seção/aba.
- * Aplica-se a elementos com a classe 'card' (e/ou 'painel' conforme o HTML).
- */
-.card, .painel { /* Aplicando a .painel também, pois é usado no HTML */
-    /* Cor de fundo branca */
-    background-color: #fff;
-    /* Borda sólida cinza claro */
-    border: 1px solid #ddd;
-    /* Bordas levemente arredondadas */
-    border-radius: 5px;
-    /* Espaçamento interno */
-    padding: 15px;
-    /* Margem inferior para separar cards empilhados verticalmente */
+.painel {
+    background-color: var(--cor-fundo-painel); /* Painéis brancos */
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-borda);
+    padding: 20px;
     margin-bottom: 20px;
-    /* Sombra muito sutil para destacar o card do fundo */
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05); /* Deslocamento X=0, Y=1px, Blur=3px, Cor=preto com 5% opacidade */
+    box-shadow: var(--sombra-suave);
 }
 
 /* --- Estilos de Formulários --- */
-
-/**
- * Estilos para os rótulos (<label>) dentro de formulários.
- */
 form label {
-    /* Faz o rótulo ocupar toda a largura disponível, colocando-o acima do campo */
     display: block;
-    /* Espaçamento abaixo do rótulo */
-    margin-bottom: 5px;
-    /* Torna o texto do rótulo em negrito */
-    font-weight: bold;
+    margin-bottom: 6px;
+    font-weight: 600; /* Labels mais destacados */
+    color: var(--cor-texto-principal); /* Labels com cor de texto principal */
 }
 
-/**
- * Estilos comuns para campos de entrada de texto, número, data, caixas de seleção e áreas de texto.
- */
 form input[type="text"],
 form input[type="number"],
 form input[type="date"],
+form input[type="color"],
 form select,
 form textarea {
-    /* Define a largura para ocupar quase todo o espaço do contêiner pai. */
-    /* 'calc(100% - 22px)' desconta o padding horizontal (10px * 2) e a borda (1px * 2) para evitar overflow. */
-    width: calc(100% - 22px);
-    /* Espaçamento interno do campo */
-    padding: 10px;
-    /* Margem inferior para separar campos empilhados */
-    margin-bottom: 10px;
-    /* Borda cinza padrão */
-    border: 1px solid #ccc;
-    /* Bordas arredondadas */
-    border-radius: 4px;
+    width: 100%;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    background-color: var(--cor-fundo-secundario); /* Fundo dos inputs em creme suave */
+    color: var(--cor-texto-principal);
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-borda-pequeno); /* Bordas um pouco menos arredondadas que os painéis */
+    box-sizing: border-box;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+form input[type="color"] {
+    padding: 4px;
+    min-height: 40px;
 }
 
+form input:focus,
+form select:focus,
+form textarea:focus {
+    outline: none;
+    border-color: var(--cor-destaque-primario);
+    box-shadow: 0 0 0 2px rgba(245, 169, 188, 0.3); /* Sombra de foco rosa pastel */
+    background-color: #fff; /* Fundo branco no foco para clareza */
+}
 
-/**
- * Estilo padrão para botões (`<button>`) dentro de formulários (`<form>`).
- * Este estilo é geralmente usado para botões de submissão ou ação principal do formulário.
- */
- form button {
-    /* Cor de fundo verde (indicando sucesso ou ação positiva) */
-    background-color: #5cb85c;
-    /* Cor do texto branca para contraste com o fundo verde */
-    color: white;
-    /* Espaçamento interno: 10px em cima/baixo, 15px nos lados */
-    padding: 10px 15px;
-    /* Remove a borda padrão do botão */
+/* Botões com estilo base */
+button, .botao-principal, .botao-secundario, .botao-perigo {
+    padding: 10px 18px;
     border: none;
-    /* Bordas arredondadas */
-    border-radius: 4px;
-    /* Muda o cursor para uma mãozinha ao passar sobre o botão, indicando clicabilidade */
+    border-radius: var(--raio-borda); /* Bordas bem arredondadas */
     cursor: pointer;
-    /* Define o tamanho da fonte padrão (1em = tamanho da fonte do elemento pai) */
-    font-size: 1em;
+    font-size: 0.95em;
+    font-weight: 700; /* Botões mais bold */
+    transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+    color: var(--cor-texto-principal); /* Texto escuro para botões com fundo claro */
+    box-shadow: var(--sombra-suave);
+}
+button:hover, .botao-principal:hover, .botao-secundario:hover, .botao-perigo:hover {
+    filter: brightness(95%); /* Escurece levemente no hover para fundos claros */
+    box-shadow: var(--sombra-media);
+}
+button:active, .botao-principal:active, .botao-secundario:active, .botao-perigo:active {
+    transform: scale(0.97) translateY(1px);
+    box-shadow: 0 1px 3px rgba(93, 84, 79, 0.15);
 }
 
-/**
- * Estilo para o estado 'hover' (quando o mouse passa por cima) dos botões de formulário.
- */
-form button:hover {
-    /* Escurece ligeiramente a cor de fundo para dar feedback visual */
-    background-color: #4cae4c;
+/* Estilo específico para botões de formulário (submit) */
+form button[type="submit"], .botao-principal {
+    background-color: var(--cor-destaque-primario);
+    color: white; /* Texto branco para contraste com rosa */
 }
+form button[type="submit"]:hover, .botao-principal:hover {
+    background-color: #e58ca0; /* Rosa mais escuro */
+}
+
+.botao-secundario {
+    background-color: var(--cor-destaque-secundario);
+    color: white; /* Texto branco para contraste com azul bebê */
+}
+.botao-secundario:hover {
+    background-color: #8cbce0; /* Azul bebê mais escuro */
+}
+
+.botao-perigo {
+    background-color: var(--cor-erro);
+    color: white;
+}
+.botao-perigo:hover {
+    background-color: #f0909d; /* Rosa erro mais escuro */
+}
+
+/* Botões desabilitados */
+button:disabled, .botao-principal:disabled, .botao-secundario:disabled, .botao-perigo:disabled {
+    background-color: #e0e0e0; /* Cinza claro */
+    color: #a0a0a0; /* Cinza médio */
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+    filter: none;
+}
+
 
 /* --- Estilos da Exibição da Garagem (Lista de Veículos) --- */
-/* Nota: O HTML fornecido usa #listaVeiculosGaragem button, não #garage-display .vehicle.
-   Estes estilos podem ser de uma versão anterior ou não estarem diretamente aplicados
-   à estrutura HTML atual. Mantidos aqui para referência. */
-
-/**
- * Estilo para cada item individual de veículo dentro do display da garagem.
- * (Seletor pode precisar ser ajustado para corresponder ao HTML real, ex: #listaVeiculosGaragem button)
- */
-#garage-display .vehicle {
-    /* Borda sólida muito clara */
-    border: 1px solid #eee;
-    /* Espaçamento interno */
-    padding: 15px;
-    /* Margem inferior para separar os itens da lista */
-    margin-bottom: 10px;
-    /* Bordas arredondadas */
-    border-radius: 5px;
-    /* Cor de fundo levemente acinzentada */
-    background-color: #f9f9f9;
-    /* Define o contexto de posicionamento para elementos filhos posicionados absolutamente (como .details-button, se usado) */
-    position: relative;
+#listaVeiculosGaragem {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* Um pouco menor */
+    gap: 12px;
 }
-
-/**
- * Estilo para títulos de nível 4 (`<h4>`) dentro de um item de veículo.
- * (Usado se cada veículo fosse representado por uma div com um título h4)
- */
-#garage-display .vehicle h4 {
-    /* Remove a margem superior padrão do h4 */
-    margin-top: 0;
-    /* Margem inferior para separar do texto seguinte */
-    margin-bottom: 10px;
-    /* Cor do texto azul escuro */
-    color: #0056b3;
-}
-
-/**
- * Estilo para parágrafos (`<p>`) dentro de um item de veículo.
- */
-#garage-display .vehicle p {
-    /* Margem vertical pequena */
-    margin: 5px 0;
-    /* Tamanho da fonte ligeiramente menor que o padrão */
-    font-size: 0.95em;
-}
-
-/**
- * Estilo para elementos com a classe 'status' dentro de um item de veículo.
- * (Usado para destacar o texto "Ligado"/"Desligado")
- */
-#garage-display .vehicle .status {
-    /* Torna o texto do status em negrito */
-    font-weight: bold;
-}
-
-/**
- * Estilo específico para o status quando o veículo está ligado.
- * Aplica-se a elementos com as classes 'status' E 'ligado'.
- */
-#garage-display .vehicle .status.ligado {
-    /* Define a cor do texto como verde */
-    color: green;
-}
-
-/**
- * Estilo específico para o status quando o veículo está desligado.
- * Aplica-se a elementos com as classes 'status' E 'desligado'.
- */
-#garage-display .vehicle .status.desligado {
-    /* Define a cor do texto como vermelho */
-    color: red;
-}
-
-/**
- * Estilos para botões (`<button>`) dentro de uma seção de ações (`.actions`).
- * Aplica-se tanto a botões na lista de garagem (`#garage-display`) quanto na
- * seção de detalhes (`#vehicle-details`).
- * Nota: A estrutura HTML atual pode usar `.acoes-container` em vez de `.actions`.
- *       Estes estilos são mantidos para referência ou compatibilidade.
- */
- #garage-display .vehicle .actions button,
- #vehicle-details .actions button {
-     /* Margem à direita para espaçar botões horizontalmente */
-     margin-right: 5px;
-     /* Margem superior para espaçar botões verticalmente se quebrarem linha */
-     margin-top: 5px;
-     /* Espaçamento interno menor para botões de ação */
-     padding: 5px 8px;
-     /* Tamanho da fonte ligeiramente menor */
-     font-size: 0.9em;
-     /* Cursor de mão para indicar clicabilidade */
-     cursor: pointer;
- }
- 
- /**
-  * Estilo específico para um botão de ação na seção de detalhes
-  * quando ele representa um estado ativo, como o turbo ligado.
-  * Aplica-se a botões com a classe `turbo-active` dentro de `.actions` em `#vehicle-details`.
-  */
- #vehicle-details .actions button.turbo-active {
-     /* Cor de fundo amarela para destacar o estado ativo */
-     background-color: #ffc107;
-     /* Define a cor da borda igual à cor de fundo (se houver borda) */
-     border-color: #ffc107;
-     /* Poderia adicionar 'color: #333;' para melhor contraste do texto em fundo amarelo */
- }
- 
- 
- /* --- Estilos da Seção de Detalhes e Manutenção (Geral) --- */
- /* Nota: A estrutura HTML atual usa a aba #tab-details e containers específicos
-    dentro dela, como .manutencao-container. #details-section pode ser um
-    seletor de uma versão anterior. */
- 
- /**
-  * Estilo para títulos de nível 3 (`<h3>`) dentro da seção de detalhes.
-  * (Seletor `#details-section` pode precisar ser ajustado para `#tab-details`)
-  */
- #details-section h3 {
-     /* Margem superior para separar dos elementos acima */
-     margin-top: 20px;
-     /* Adiciona uma linha divisória clara acima do título */
-     border-top: 1px solid #eee;
-     /* Espaçamento acima do texto do título, abaixo da linha */
-     padding-top: 15px;
- }
- 
- /**
-  * Estilo para itens de lista (`<li>`) dentro das listas de histórico
-  * (`#maintenance-history`) e agendamentos (`#future-appointments-list`).
-  * Nota: O HTML atual usa `#historicoLista` e `#agendamentosLista`.
-  *       Aplicando a todos para garantir compatibilidade ou cobrir ambos os casos.
-  */
- #maintenance-history li,
- #future-appointments-list li,
- #historicoLista li,       /* Incluindo IDs do HTML atual */
- #agendamentosLista li {   /* Incluindo IDs do HTML atual */
-     /* Cor de fundo cinza claro para os itens */
-     background-color: #e9ecef;
-     /* Espaçamento interno */
-     padding: 8px;
-     /* Margem inferior para separar itens na lista */
-     margin-bottom: 5px;
-     /* Bordas levemente arredondadas */
-     border-radius: 3px;
-     /* Tamanho da fonte menor */
-     font-size: 0.9em;
-     /* Remove o marcador de lista padrão (bolinha/número) */
-     list-style: none; /* Adicionado para garantir que não haja marcadores */
- }
- 
- /**
-  * Estilo específico para itens de lista (`<li>`) dentro da lista de agendamentos futuros.
-  * Sobrescreve a cor de fundo definida anteriormente.
-  */
- #future-appointments-list li,
- #agendamentosLista li { /* Incluindo ID do HTML atual */
-     /* Cor de fundo azul claro, diferenciando agendamentos de histórico */
-     background-color: #d1ecf1;
- }
- 
- /* --- Estilos de Componentes Específicos (Exemplo) --- */
- 
- /**
-  * Estilo para um botão de "Detalhes" que poderia estar posicionado
-  * dentro de cada item da lista de veículos (se a UI fosse diferente).
-  * Este botão permitiria ao usuário ver mais informações ou ir para a seção de manutenção.
-  */
- .details-button {
-     /* Posicionamento absoluto relativo ao contêiner pai (que deve ter `position: relative;`) */
-     position: absolute;
-     /* Distância do topo do contêiner pai */
-     top: 10px;
-     /* Distância da direita do contêiner pai */
-     right: 10px;
-     /* Espaçamento interno */
-     padding: 5px 10px;
-     /* Cor de fundo azul */
-     background-color: #007bff;
-     /* Cor do texto branca */
-     color: white;
-     /* Remove a borda padrão */
-     border: none;
-     /* Bordas arredondadas */
-     border-radius: 4px;
-     /* Cursor de mão */
-     cursor: pointer;
- }
- 
- /**
-  * Estilo para o estado 'hover' do botão de detalhes.
-  */
- .details-button:hover {
-     /* Escurece a cor de fundo azul no hover */
-     background-color: #0056b3;
- }
- 
- /* --- Estilos da Previsão do Tempo --- */
-#weather-forecast-container {
-    background-color: #e9ecef; /* Um cinza claro, diferente do fundo da página */
-    padding: 10px 15px;
-    margin-bottom: 20px;
-    border-radius: 5px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-}
-
-#weather-forecast-container h2 {
-    margin-top: 0;
-    margin-bottom: 10px;
-    font-size: 1.2em;
-    color: #343a40; /* Cor mais escura para o título */
-}
-
-.weather-forecast-items {
-    display: flex; /* Organiza os itens da previsão em linha */
-    flex-wrap: wrap; /* Permite que os itens quebrem para a próxima linha se não couberem */
-    gap: 10px; /* Espaçamento entre os itens da previsão */
-    justify-content: space-around; /* Distribui os itens com espaço ao redor */
-}
-
-.weather-item {
+#listaVeiculosGaragem button {
     background-color: #fff;
-    border: 1px solid #ced4da; /* Borda sutil */
-    border-radius: 4px;
-    padding: 10px;
-    text-align: center;
-    min-width: 100px; /* Largura mínima para cada item */
-    flex-basis: 120px; /* Base de largura para cada item, permite encolher/crescer */
-    flex-grow: 1;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-}
-
-.weather-item img {
-    width: 50px; /* Tamanho do ícone do tempo */
-    height: 50px;
-    margin-bottom: 5px;
-}
-
-.weather-item p {
-    margin: 2px 0;
-    font-size: 0.85em;
-}
-
-.weather-item .date {
-    font-weight: bold;
-    font-size: 0.9em;
-    color: #0056b3;
-}
-
-.weather-item .temp {
-    font-size: 1em;
-    font-weight: bold;
-}
-
-/* Estilo para placeholder de erro/carregamento na previsão */
-#weather-forecast-display .placeholder-text,
-#weather-forecast-display .error-text {
-    width: 100%;
-    text-align: center;
-    color: #6c757d;
-}
-#weather-forecast-display .error-text {
-    color: #dc3545; /* Vermelho para erros */
-}
-
-/* Ajuste no cabeçalho principal para acomodar melhor os elementos */
-.main-header {
+    color: var(--cor-texto-principal);
+    border: 1px solid var(--cor-borda);
+    text-align: left;
+    padding: 10px 12px;
     display: flex;
-    flex-wrap: wrap; /* Permite que os itens quebrem linha */
-    justify-content: space-between; /* Espaça os blocos principais */
-    align-items: center; /* Alinha verticalmente os itens */
-    gap: 15px; /* Espaçamento entre os blocos do cabeçalho */
-    padding-bottom: 15px;
-    border-bottom: 2px solid #0056b3; /* Linha azul para separar o header */
+    align-items: center;
+    border-radius: var(--raio-borda-pequeno);
+}
+#listaVeiculosGaragem button:hover {
+    border-color: var(--cor-destaque-primario);
+    background-color: var(--cor-fundo-secundario);
+    box-shadow: var(--sombra-suave);
+}
+#listaVeiculosGaragem button.selecionado {
+    background-color: var(--cor-destaque-primario);
+    color: white;
+    border-color: var(--cor-destaque-primario);
+}
+.color-swatch-list {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border-radius: var(--raio-borda-pequeno);
+    margin-right: 8px;
+    border: 1px solid rgba(0,0,0,0.05);
 }
 
-.main-header h1 {
-    flex-basis: 100%; /* Título ocupa a largura total na primeira linha */
-    text-align: center;
+/* --- Estilos da Seção de Detalhes do Veículo --- */
+.details-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+.details-header h2 {
+    margin-bottom: 0;
+}
+
+.info-box {
+    background-color: var(--cor-fundo-secundario); /* Fundo suave para a caixa de info */
+    padding: 15px;
+    border-radius: var(--raio-borda-pequeno);
     margin-bottom: 15px;
 }
+.info-box p {
+    margin: 4px 0;
+}
+.info-box strong {
+    color: var(--cor-texto-principal);
+    font-weight: 600;
+}
+.status-ligado .status-indicator { background-color: #a6d9a3; /* Verde pastel */ }
+.status-desligado .status-indicator { background-color: #ffc0cb; /* Rosa claro */ }
+.status-indicator {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
+}
+.color-swatch {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border-radius: var(--raio-borda-pequeno);
+    margin-right: 4px;
+    vertical-align: middle;
+    border: 1px solid rgba(0,0,0,0.05);
+}
 
+
+.acoes-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+.acoes-container button {
+    padding: 8px 12px; /* Mantido */
+    font-size: 0.9em; /* Mantido */
+    background-color: #fff;
+    border: 1px solid var(--cor-borda);
+}
+.acoes-container button:hover {
+    background-color: var(--cor-fundo-secundario);
+    border-color: var(--cor-destaque-secundario); /* Destaque azul bebê no hover */
+}
+#btnAtivarTurbo { background-color: var(--cor-sucesso); color: var(--cor-texto-principal);}
+#btnAtivarTurbo:hover { background-color: #9bcdd0; }
+
+
+.controles-especificos {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    background-color: var(--cor-fundo-secundario);
+    border-radius: var(--raio-borda-pequeno);
+}
+.controles-especificos.hidden { display: none; }
+
+
+/* --- Manutenção --- */
+.manutencao-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+.form-manutencao h4, .historico-agendamento h4 {
+    font-size: 1.1em; /* Um pouco menor */
+    color: var(--cor-destaque-primario); /* Títulos em rosa */
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+
+#historicoLista li, #agendamentosLista li {
+    background-color: var(--cor-fundo-secundario);
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    border-radius: var(--raio-borda-pequeno);
+    font-size: 0.85em;
+    list-style: none;
+    border-left: 3px solid var(--cor-borda);
+}
+
+#agendamentosLista li {
+    border-left-color: var(--cor-destaque-secundario); /* Agendamentos com borda azul bebê */
+}
+#agendamentosLista li.agendamento-hoje {
+    border-left-color: var(--cor-aviso);
+    background-color: rgba(255, 224, 132, 0.3); /* Fundo amarelo pastel suave */
+}
+#agendamentosLista li.agendamento-amanha {
+    border-left-color: var(--cor-sucesso);
+}
+
+
+/* --- Previsão do Tempo (Tema Pastel) --- */
 #weather-forecast-container {
-    flex-basis: 100%; /* Container do tempo ocupa largura total */
-    order: 1; /* Faz o tempo aparecer depois do H1 e antes da navegação */
-    margin-bottom: 15px; /* Espaço abaixo do tempo */
+    background-color: var(--cor-fundo-painel);
+    padding: 18px;
+    margin-bottom: 20px;
+    border-radius: var(--raio-borda);
+    box-shadow: var(--sombra-media);
+    border: 1px solid var(--cor-borda);
 }
-.main-header .tab-navigation {
-   order: 2; /* Navegação depois do tempo */
-   flex-grow: 1; /* Permite que a navegação ocupe espaço disponível */
-}
-.main-header .volume-control {
-    order: 3; /* Controle de volume por último */
+/* ... (Seu CSS do Tema Pastel Aconchegante) ... */
+
+/* --- Previsão do Tempo (Tema Pastel) --- */
+/* ... (estilos existentes da previsão do tempo, incluindo os .filter-btn) ... */
+
+/* Controles de Destaque */
+.weather-highlight-controls {
+    display: flex;
+    flex-wrap: wrap; /* Para quebrar linha em telas menores */
+    align-items: center;
+    gap: 10px 15px; /* Espaçamento vertical e horizontal */
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: var(--cor-fundo-secundario);
+    border-radius: var(--raio-borda-pequeno);
 }
 
-/* ... (resto do seu CSS) ... */
+.weather-highlight-controls > span { /* O título "Destaques:" */
+    font-size: 0.9em;
+    color: var(--cor-texto-secundario);
+    margin-right: 5px;
+    font-weight: 600;
+}
+
+.highlight-toggle {
+    display: inline-flex; /* Para alinhar o checkbox e o texto */
+    align-items: center;
+    cursor: pointer;
+    font-size: 0.85em;
+    color: var(--cor-texto-principal);
+    padding: 5px 8px;
+    border-radius: var(--raio-borda-pequeno);
+    background-color: #fff;
+    border: 1px solid var(--cor-borda);
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.highlight-toggle:hover {
+    border-color: var(--cor-destaque-primario);
+}
+
+.highlight-toggle input[type="checkbox"] {
+    appearance: none; /* Remove o estilo padrão do checkbox */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 16px;
+    height: 16px;
+    border: 1px solid var(--cor-borda);
+    border-radius: 4px;
+    margin-right: 8px;
+    cursor: pointer;
+    position: relative; /* Para o pseudo-elemento do "check" */
+    outline: none; /* Remove o outline padrão no foco */
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.highlight-toggle input[type="checkbox"]:checked {
+    background-color: var(--cor-destaque-primario); /* Rosa quando checado */
+    border-color: var(--cor-destaque-primario);
+}
+
+/* Adiciona um "check" visual quando o checkbox está marcado */
+.highlight-toggle input[type="checkbox"]:checked::before {
+    content: '✔'; /* Símbolo de check */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 12px;
+    color: white;
+    line-height: 1;
+}
+
+/* Estilos para os cards de previsão destacados */
+.weather-item.highlight-rain {
+    background-color: #cfe7fa; /* Azul bem clarinho para chuva */
+    border-left: 4px solid var(--cor-destaque-secundario); /* Borda azul bebê */
+}
+
+.weather-item.highlight-cold {
+    background-color: #e0f2f7; /* Ciano bem clarinho para frio */
+    border-left: 4px solid #67c1d5; /* Ciano mais forte */
+}
+
+.weather-item.highlight-hot {
+    background-color: #fff0e1; /* Laranja bem clarinho para calor */
+    border-left: 4px solid #ffc078; /* Laranja pastel */
+}
+
+/* Se houver múltiplos destaques, a última borda definida pode prevalecer,
+   ou você pode adicionar mais complexidade para combinar (ex: ícones) */
+
+
+/* ... (resto dos estilos da previsão do tempo e demais estilos) ... */
+/* Removido o H3 fixo, mas se precisar estilizar, pode ser aqui ou comentado */
+/* #weather-forecast-container > h3 {
+    display: none;
+    font-size: 1.2em;
+    color: var(--cor-texto-principal);
+    margin-bottom: 10px;
+    border-bottom: none;
+    padding-bottom: 0;
+    font-weight: 700;
+} */
+
+/* ================================================================ */
+/* ================================================================ */
+
+
+.weather-forecast-items { /* Este já existe no seu CSS */
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(125px, 1fr));
+    gap: 12px;
+}
+
+.weather-item { /* Este já existe no seu CSS */
+    background-color: #fff; /* Itens da previsão em branco */
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-borda-pequeno);
+    padding: 12px;
+    box-shadow: var(--sombra-suave);
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+.weather-item {
+    background-color: #fff; /* Itens da previsão em branco */
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-borda-pequeno);
+    padding: 12px;
+    box-shadow: var(--sombra-suave);
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+.weather-item:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--sombra-media);
+    border-color: var(--cor-destaque-secundario); /* Borda azul bebê no hover */
+}
+.weather-item img {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 6px;
+}
+.weather-item .date {
+    font-weight: 600;
+    font-size: 0.9em;
+    color: var(--cor-destaque-primario); /* Data em rosa */
+}
+.weather-item .temp {
+    font-size: 1.1em;
+    font-weight: 700; /* Temperatura mais bold */
+    color: var(--cor-texto-principal);
+}
+.weather-item .desc {
+    font-size: 0.75em;
+    color: var(--cor-texto-secundario);
+    min-height: 2em;
+}
+
+.forecast-details-expanded {
+    font-size: 0.8em;
+    text-align: left;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px dashed #d1c7bf; /* Borda tracejada um pouco mais escura */
+    color: var(--cor-texto-secundario);
+}
+.forecast-details-expanded p {
+    margin: 2px 0;
+}
+.forecast-details-expanded strong {
+    color: var(--cor-texto-principal);
+    font-weight: 600;
+}
+
+/* Placeholder e Textos de Erro */
+.placeholder-text, .error-text {
+    width: 100%;
+    text-align: center;
+    color: var(--cor-texto-secundario);
+    padding: 12px;
+    font-style: italic;
+    background-color: var(--cor-fundo-secundario);
+    border-radius: var(--raio-borda-pequeno);
+}
+.error-text {
+    color: var(--cor-texto-principal); /* Texto escuro para melhor contraste com fundo de erro pastel */
+    background-color: var(--cor-erro);
+    font-weight: 600;
+    font-style: normal;
+}
+
+/* --- Navegação por Abas --- */
+.tab-navigation {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    width: 100%;
+}
+.tab-button {
+    padding: 9px 16px;
+    background-color: #fff;
+    color: var(--cor-texto-secundario);
+    border: 1px solid var(--cor-borda);
+    border-bottom-width: 2px;
+    border-bottom-color: transparent;
+    border-radius: var(--raio-borda-pequeno) var(--raio-borda-pequeno) 0 0; /* Arredondado em cima */
+    font-weight: 600;
+}
+.tab-button:hover {
+    color: var(--cor-destaque-primario);
+    border-bottom-color: var(--cor-destaque-primario);
+    background-color: var(--cor-fundo-secundario);
+}
+.tab-button.active {
+    background-color: var(--cor-fundo-painel); /* Mesmo fundo do painel ativo */
+    color: var(--cor-destaque-primario);
+    border-color: var(--cor-borda);
+    border-bottom-color: var(--cor-fundo-painel); /* "Esconde" a borda inferior da aba ativa */
+    position: relative;
+    top: 1px; /* Pequeno ajuste para "fundir" com o painel */
+    font-weight: 700;
+}
+.tab-button:disabled {
+    background-color: #f0f0f0; /* Cinza bem claro */
+    color: #b0b0b0;
+    border-bottom-color: transparent;
+    cursor: not-allowed;
+}
+
+/* Conteúdo das Abas */
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+
+
+/* --- Controle de Volume --- */
+.volume-control {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 8px auto 18px auto;
+}
+.volume-control label {
+    color: var(--cor-texto-secundario);
+    font-size: 0.85em;
+}
+input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 130px;
+    height: 6px;
+    background: var(--cor-fundo-secundario);
+    outline: none;
+    border-radius: 3px;
+    border: 1px solid var(--cor-borda);
+}
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    background: var(--cor-destaque-secundario); /* Thumb azul bebê */
+    cursor: pointer;
+    border-radius: 50%;
+    border: 2px solid #fff; /* Borda branca no thumb */
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+input[type="range"]::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    background: var(--cor-destaque-secundario);
+    cursor: pointer;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* --- Notificações --- */
+.notificacoes-container {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    z-index: 1000;
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.notificacao {
+    padding: 12px 18px;
+    border-radius: var(--raio-borda-pequeno); /* Bordas das notificações mais suaves */
+    color: var(--cor-texto-principal); /* Texto escuro para fundos pastel claros */
+    box-shadow: var(--sombra-media);
+    opacity: 0;
+    transform: translateX(100%);
+    transition: opacity 0.25s ease-out, transform 0.25s ease-out;
+    position: relative;
+    font-size: 0.9em;
+    font-weight: 500;
+}
+.notificacao.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+.notificacao.info { background-color: var(--cor-destaque-secundario); color:white; }
+.notificacao.sucesso { background-color: var(--cor-sucesso); }
+.notificacao.aviso { background-color: var(--cor-aviso); }
+.notificacao.erro { background-color: var(--cor-erro); }
+
+.notificacao-close {
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    background: none;
+    border: none;
+    color: inherit;
+    font-size: 1.4em;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0.6;
+}
+.notificacao-close:hover { opacity: 1; }
+
+
+/* --- Rodapé --- */
+.main-footer-credits {
+    text-align: center;
+    padding: 15px;
+    margin-top: 25px;
+    font-size: 0.8em;
+    color: var(--cor-texto-secundario);
+    border-top: 1px solid var(--cor-borda);
+    width: 100%;
+}
+
+/* --- Ajustes Responsivos --- */
+@media (max-width: 768px) {
+    body {
+        padding: 12px;
+    }
+    h1 { font-size: 1.7em; }
+    h2 { font-size: 1.4em; }
+
+    .manutencao-container {
+        grid-template-columns: 1fr;
+    }
+    #listaVeiculosGaragem {
+        grid-template-columns: 1fr;
+    }
+    .weather-city-input-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .weather-city-input-container input[type="text"] {
+        width: 100%;
+    }
+    .weather-forecast-items {
+        grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    }
+    .notificacoes-container {
+        width: calc(100% - 30px);
+        left: 15px;
+        right: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-header .tab-navigation {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .tab-button {
+        text-align: center;
+        border-radius: var(--raio-borda-pequeno); /* Abas totalmente arredondadas quando empilhadas */
+    }
+    .tab-button.active {
+        top: 0; /* Resetar ajuste da aba ativa */
+    }
+
+    #current-weather-display {
+        flex-direction: column;
+        text-align: center;
+    }
+    .app-wrapper {
+        max-width: 100%; /* Permitir que o conteúdo ocupe mais espaço */
+    }
+}
+
+/* Efeito de highlight sutil para veículo adicionado */
+#listaVeiculosGaragem button.highlight-add {
+    animation: highlight-pulse 1.5s ease-out;
+}
+@keyframes highlight-pulse {
+    0% { background-color: var(--cor-sucesso); transform: scale(1); }
+    30% { transform: scale(1.03); }
+    100% { background-color: #fff; transform: scale(1); }
+}
