@@ -1,10 +1,31 @@
+// server.js
+
 // Importações
 import express from 'express';
 import dotenv from 'dotenv';
 import axios from 'axios';
+import fs from 'fs'; // Importe o módulo 'fs' para ler arquivos
+import { fileURLToPath } from 'url';
+import path from 'path';
+
+// Configuração para obter o __dirname em módulos ES
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Carrega variáveis de ambiente do arquivo .env
 dotenv.config();
+
+// Carrega os dados do nosso arquivo JSON
+let dados = {};
+try {
+    const rawData = fs.readFileSync(path.join(__dirname, 'dados.json'));
+    dados = JSON.parse(rawData);
+    console.log('[Servidor] Arquivo dados.json carregado com sucesso.');
+} catch (error) {
+    console.error('[Servidor ERRO] Não foi possível ler ou parsear o arquivo dados.json:', error);
+    // Em um app real, você poderia decidir parar o servidor ou continuar com dados vazios
+}
+
 
 // Inicializa o aplicativo Express
 const app = express();
@@ -13,68 +34,65 @@ const apiKey = process.env.OPENWEATHER_API_KEY;
 
 // Middleware para permitir CORS
 app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*'); // Em produção, restrinja para o seu domínio frontend
+    res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
     next();
 });
 
-// ----- ENDPOINT: Previsão do Tempo (5 dias / 3 horas) -----
+
+// ----- ENDPOINTS DA API DE CLIMA (Proxy) -----
+
+app.get('/api/tempoatual/:cidade', async (req, res) => {
+    // ... (código existente sem alterações)
+});
+
 app.get('/api/previsao/:cidade', async (req, res) => {
-    const { cidade } = req.params;
+    // ... (código existente sem alterações)
+});
 
-    if (!apiKey) {
-        return res.status(500).json({ error: 'Chave da API OpenWeatherMap não configurada no servidor.' });
-    }
-    if (!cidade) {
-        return res.status(400).json({ error: 'Nome da cidade é obrigatório.' });
-    }
 
-    const forecastAPIUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${cidade}&appid=${apiKey}&units=metric&lang=pt_br`;
+// ----- NOVOS ENDPOINTS DA GARAGEM INTELIGENTE -----
 
-    try {
-        console.log(`[Servidor] Buscando PREVISÃO para: ${cidade} (URL: ${forecastAPIUrl})`);
-        const apiResponse = await axios.get(forecastAPIUrl);
-        console.log('[Servidor] Dados de PREVISÃO recebidos da OpenWeatherMap.');
-        res.json(apiResponse.data);
-    } catch (error) {
-        const statusCode = error.response?.status || 500;
-        const errorMessage = error.response?.data?.message || 'Erro ao buscar previsão do tempo no servidor.';
-        console.error(`[Servidor] Erro ao buscar PREVISÃO para ${cidade}:`, statusCode, errorMessage, error.response?.data || error.message);
-        res.status(statusCode).json({ error: errorMessage, details: error.response?.data });
+// Endpoint para dicas de manutenção gerais
+app.get('/api/dicas-manutencao', (req, res) => {
+    console.log('[Servidor] Requisição recebida para /api/dicas-manutencao');
+    if (dados.dicasManutencao && dados.dicasManutencao.geral) {
+        res.json(dados.dicasManutencao.geral);
+    } else {
+        res.status(500).json({ error: "Dados de dicas gerais não encontrados no servidor." });
     }
 });
 
-// ----- NOVO ENDPOINT: Tempo Atual -----
-app.get('/api/tempoatual/:cidade', async (req, res) => {
-    const { cidade } = req.params;
+// Endpoint para dicas de manutenção por tipo de veículo
+app.get('/api/dicas-manutencao/:tipoVeiculo', (req, res) => {
+    const { tipoVeiculo } = req.params;
+    console.log(`[Servidor] Requisição recebida para /api/dicas-manutencao/${tipoVeiculo}`);
+    
+    // Mapeia o tipo do frontend para a chave no JSON
+    const tipoMapeado = tipoVeiculo.toLowerCase().replace('carro', ''); // "Carro" -> "", "CarroEsportivo" -> "esportivo"
+    const chaveJson = tipoMapeado === '' ? 'carro' : tipoMapeado; // "Caminhao" -> "caminhao"
+    
+    const dicas = dados.dicasManutencao ? dados.dicasManutencao[chaveJson] : null;
 
-    if (!apiKey) {
-        return res.status(500).json({ error: 'Chave da API OpenWeatherMap não configurada no servidor.' });
+    if (dicas) {
+        res.json(dicas);
+    } else {
+        res.status(404).json({ error: `Nenhuma dica de manutenção encontrada para o tipo: ${tipoVeiculo}` });
     }
-    if (!cidade) {
-        return res.status(400).json({ error: 'Nome da cidade é obrigatório.' });
-    }
+});
 
-    const currentWeatherAPIUrl = `https://api.openweathermap.org/data/2.5/weather?q=${cidade}&appid=${apiKey}&units=metric&lang=pt_br`;
-
-    try {
-        console.log(`[Servidor] Buscando TEMPO ATUAL para: ${cidade} (URL: ${currentWeatherAPIUrl})`);
-        const apiResponse = await axios.get(currentWeatherAPIUrl);
-        console.log('[Servidor] Dados de TEMPO ATUAL recebidos da OpenWeatherMap.');
-        res.json(apiResponse.data);
-    } catch (error) {
-        const statusCode = error.response?.status || 500;
-        const errorMessage = error.response?.data?.message || 'Erro ao buscar tempo atual no servidor.';
-        console.error(`[Servidor] Erro ao buscar TEMPO ATUAL para ${cidade}:`, statusCode, errorMessage, error.response?.data || error.message);
-        res.status(statusCode).json({ error: errorMessage, details: error.response?.data });
+// Endpoint para viagens populares
+app.get('/api/viagens-populares', (req, res) => {
+    console.log('[Servidor] Requisição recebida para /api/viagens-populares');
+    if (dados.viagensPopulares) {
+        res.json(dados.viagensPopulares);
+    } else {
+        res.status(500).json({ error: "Dados de viagens populares não encontrados no servidor." });
     }
 });
 
 
 // Inicia o servidor
 app.listen(port, () => {
-    console.log(`Servidor backend rodando em http://localhost:${port}`);
-    if (!apiKey) {
-        console.warn("[Servidor AVISO] Chave da API OpenWeatherMap (OPENWEATHER_API_KEY) não está configurada no arquivo .env. As chamadas para a API de clima falharão.");
-    }
+    // ... (código existente sem alterações)
 });

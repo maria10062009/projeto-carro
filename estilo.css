@@ -753,3 +753,80 @@ input[type="range"]::-moz-range-thumb {
     30% { transform: scale(1.03); }
     100% { background-color: #fff; transform: scale(1); }
 }
+
+.dicas-container {
+    margin-top: 20px;
+}
+
+.dicas-container button {
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.dicas-resultado-box {
+    background-color: var(--cor-fundo-secundario);
+    border-radius: var(--raio-borda-pequeno);
+    padding: 12px;
+    font-size: 0.85em;
+    min-height: 50px;
+    border-left: 3px solid var(--cor-sucesso);
+}
+
+.dicas-resultado-box ul {
+    list-style-type: '💡 ';
+    padding-left: 20px;
+    margin: 0;
+}
+
+.dicas-resultado-box li {
+    margin-bottom: 5px;
+}
+
+#listaVeiculosGaragem button.highlight-add {
+    animation: highlight-pulse 1.5s ease-out;
+}
+@keyframes highlight-pulse {
+    0% { background-color: var(--cor-sucesso); transform: scale(1); }
+    30% { transform: scale(1.03); }
+    100% { background-color: #fff; transform: scale(1); }
+}
+
+/* --- ESTILOS PARA NOVAS FUNCIONALIDADES --- */
+.dicas-container {
+    margin-top: 20px;
+}
+
+.dicas-container button {
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.dicas-resultado-box {
+    background-color: var(--cor-fundo-secundario);
+    border-radius: var(--raio-borda-pequeno);
+    padding: 12px;
+    font-size: 0.85em;
+    min-height: 50px;
+    border-left: 3px solid var(--cor-sucesso);
+    transition: all 0.3s ease;
+}
+
+.dicas-resultado-box ul {
+    list-style-type: '💡 ';
+    padding-left: 20px;
+    margin: 0;
+}
+
+.dicas-resultado-box li {
+    margin-bottom: 5px;
+}
+
+#btnViagensPopulares {
+    margin-top: 10px;
+    background-color: var(--cor-fundo-secundario);
+    border: 1px solid var(--cor-borda);
+}
+
+#btnViagensPopulares:hover {
+    background-color: var(--cor-sucesso);
+}

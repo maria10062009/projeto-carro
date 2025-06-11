@@ -34,7 +34,6 @@
                     <button class="filter-btn" data-days="1" title="Mostrar previsão apenas para hoje">Hoje</button>
                 </div>
 
-                <!-- NOVOS CONTROLES DE DESTAQUE -->
                 <div class="weather-highlight-controls">
                     <span>Destaques:</span>
                     <label class="highlight-toggle">
@@ -69,7 +68,6 @@
         </header>
 
         <main class="tab-content-area">
-            <!-- ... (resto do seu main) ... -->
             <!-- Seção/Aba: Adicionar Veículo -->
             <section id="tab-add" class="tab-pane">
                 <div class="painel">
@@ -165,15 +163,22 @@
                             <ul id="historicoLista"><li class="placeholder-text">Nenhum histórico.</li></ul>
                             <h4>Agendamentos (Futuro)</h4>
                             <ul id="agendamentosLista"><li class="placeholder-text">Nenhum agendamento.</li></ul>
+                            
+                            <div class="dicas-container">
+                                <button id="btnVerDicas" class="botao-secundario" disabled>Ver Dicas de Manutenção</button>
+                                <div id="dicasManutencaoResultado" class="dicas-resultado-box"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </section>
         </main>
-
+        
         <footer class="main-footer-credits">
             <p>Garagem Inteligente v4.1 - Desenvolvido com HTML, CSS e JavaScript</p>
+            <button id="btnViagensPopulares" title="Receber sugestões de viagens de carro">✈️ Sugestões de Viagem</button>
         </footer>
+
     </div> <!-- Fim do .app-wrapper -->
 
     <div id="notificacoes" class="notificacoes-container"></div>
