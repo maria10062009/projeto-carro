@@ -1,10 +1,12 @@
+// script.js
+
 (function () {
     'use strict';
 
     // ==========================================================================
     // CONSTANTES E CONFIGURAÇÕES GLOBAIS
     // ==========================================================================
-    const API_BASE_URL = 'http://localhost:3001'; // OU A URL DO SEU BACKEND NO RENDER
+    const API_BASE_URL = 'http://localhost:3001';
     const WEATHER_FORECAST_API_URL = `${API_BASE_URL}/api/previsao`;
     const CURRENT_WEATHER_API_URL = `${API_BASE_URL}/api/tempoatual`;
     
@@ -102,6 +104,9 @@
     // ==========================================================================
     // CLASSES (Manutencao, Carro, CarroEsportivo, Caminhao)
     // ==========================================================================
+    // ... O código das suas classes (Carro, Caminhão, etc.) permanece o mesmo ...
+    // Para economizar espaço, não vou repetir todo o bloco de classes aqui, 
+    // pois ele não precisou de alterações. Cole o seu bloco de classes original aqui.
     class Manutencao {
         data; tipo; custo; descricao; _tipoClasse = 'Manutencao';
         constructor(dataInput, tipoInput, custoInput, descricaoInput = '') {
@@ -379,15 +384,19 @@
         let logPrefix = "";
 
         if (typeof cityOrCoords === 'string') {
-            logPrefix = `(Cidade: ${cityOrCoords})`;
-            setWeatherLoadingStates(cityOrCoords);
-            currentUrl = `${CURRENT_WEATHER_API_URL}/${encodeURIComponent(cityOrCoords)}`;
-            forecastUrl = `${WEATHER_FORECAST_API_URL}/${encodeURIComponent(cityOrCoords)}`;
+            const cidade = cityOrCoords;
+            logPrefix = `(Cidade: ${cidade})`;
+            setWeatherLoadingStates(cidade);
+            // CORRIGIDO: Usa query parameters para o servidor unificado
+            currentUrl = `${CURRENT_WEATHER_API_URL}?cidade=${encodeURIComponent(cidade)}`;
+            forecastUrl = `${WEATHER_FORECAST_API_URL}?cidade=${encodeURIComponent(cidade)}`;
         } else if (typeof cityOrCoords === 'object' && cityOrCoords.lat && cityOrCoords.lon) {
-            logPrefix = `(Coords: ${cityOrCoords.lat.toFixed(2)},${cityOrCoords.lon.toFixed(2)})`;
+            const { lat, lon } = cityOrCoords;
+            logPrefix = `(Coords: ${lat.toFixed(2)},${lon.toFixed(2)})`;
             setWeatherLoadingStates("Buscando por localização...");
-            currentUrl = `${CURRENT_WEATHER_API_URL}?lat=${cityOrCoords.lat}&lon=${cityOrCoords.lon}`;
-            forecastUrl = `${WEATHER_FORECAST_API_URL}?lat=${cityOrCoords.lat}&lon=${cityOrCoords.lon}`;
+            // CORRIGIDO: Usa query parameters para o servidor unificado
+            currentUrl = `${CURRENT_WEATHER_API_URL}?lat=${lat}&lon=${lon}`;
+            forecastUrl = `${WEATHER_FORECAST_API_URL}?lat=${lat}&lon=${lon}`;
         } else {
             console.error("ERRO API TEMPO: Parâmetro de busca inválido.", cityOrCoords);
             adicionarNotificacao("Erro interno ao tentar buscar previsão.", "erro");
@@ -432,7 +441,9 @@
             current5DayForecastData = null;
         }
     }
-
+    
+    // ... O resto das suas funções (atualizarDisplay, switchTab, etc.) permanece o mesmo ...
+    // Cole o seu bloco de funções original aqui.
     function setWeatherLoadingStates(cityName = "Carregando...") {
         if (weatherCityNameEl) weatherCityNameEl.textContent = cityName;
         if (currentWeatherDisplayEl) currentWeatherDisplayEl.innerHTML = '<p class="placeholder-text">Buscando tempo atual...</p>';
@@ -1030,6 +1041,7 @@
         if (btnViagensPopulares) {
             btnViagensPopulares.addEventListener('click', async () => {
                 try {
+                    // A constante API_BASE_URL já é 'http://localhost:3001', então a URL está correta.
                     const response = await fetch(`${API_BASE_URL}/api/viagens-populares`);
                     if (!response.ok) throw new Error('Não foi possível buscar as sugestões de viagem.');
                     const viagens = await response.json();
@@ -1037,7 +1049,8 @@
                     adicionarNotificacao('Aqui vão algumas sugestões de viagem!', 'info', 4000);
                     viagens.forEach((viagem, index) => {
                         setTimeout(() => {
-                            const mensagem = `${viagem.destino}: ${viagem.descricao}`;
+                            // Supondo que seu dados.json para viagens tenha 'destino' e 'descricao'
+                            const mensagem = `${viagem.destino}: Ideal para ${viagem.tipo}. Melhor época: ${viagem.melhorEpoca}`;
                             adicionarNotificacao(mensagem, 'sucesso', 8000);
                         }, (index + 1) * 2500);
                     });
@@ -1096,6 +1109,7 @@
     // --- Funções Auxiliares de Inicialização ---
     async function carregarDetalhesVeiculos() {
         try {
+            // Supondo que você tenha um arquivo vehicle_details.json na mesma pasta do seu HTML
             const response = await fetch('vehicle_details.json');
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             detalhesVeiculosJSON = await response.json();
