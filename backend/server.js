@@ -4,7 +4,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import axios from 'axios';
-import fs from 'fs'; // Importe o módulo 'fs' para ler arquivos
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import path from 'path';
 
@@ -23,14 +23,15 @@ try {
     console.log('[Servidor] Arquivo dados.json carregado com sucesso.');
 } catch (error) {
     console.error('[Servidor ERRO] Não foi possível ler ou parsear o arquivo dados.json:', error);
-    // Em um app real, você poderia decidir parar o servidor ou continuar com dados vazios
 }
-
 
 // Inicializa o aplicativo Express
 const app = express();
 const port = process.env.PORT || 3001;
-const apiKey = process.env.OPENWEATHER_API_KEY;
+let apiKey = process.env.OPENWEATHER_API_KEY;
+
+apiKey="63a1f362fee743f16dab84c7bf24548a";
+console.log(apiKey);
 
 // Middleware para permitir CORS
 app.use((req, res, next) => {
@@ -39,19 +40,69 @@ app.use((req, res, next) => {
     next();
 });
 
+// =========================================================
+// ----- ENDPOINTS DA API DE CLIMA (Proxy) - COMPLETOS -----
+// =========================================================
 
-// ----- ENDPOINTS DA API DE CLIMA (Proxy) -----
+// Função auxiliar para lidar com erros da API
+const handleApiError = (error, res, location) => {
+    console.error(`[Servidor ERRO] Falha ao buscar dados para ${location}:`, error.message);
+    const status = error.response ? error.response.status : 500;
+    const message = status === 404 ? `Localização não encontrada: ${location}` : "Erro ao contatar a API de clima.";
+    res.status(status).json({ error: message });
+};
 
-app.get('/api/tempoatual/:cidade', async (req, res) => {
-    // ... (código existente sem alterações)
+// Endpoint unificado para obter o tempo atual (por cidade ou coordenadas)
+app.get('/api/tempoatual', async (req, res) => {
+    const { cidade, lat, lon } = req.query;
+    let url;
+    let locationIdentifier;
+
+    if (cidade) {
+        locationIdentifier = cidade;
+        url = `https://api.openweathermap.org/data/2.5/weather?q=${cidade}&appid=${apiKey}&units=metric&lang=pt_br`;
+        console.log(url);
+    } else if (lat && lon) {
+        locationIdentifier = `lat=${lat}, lon=${lon}`;
+        url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=pt_br`;
+    } else {
+        return res.status(400).json({ error: "Parâmetros 'cidade' ou 'lat/lon' são necessários." });
+    }
+
+    try {
+        console.log(`[Servidor] Buscando tempo atual para: ${locationIdentifier}`);
+        const response = await axios.get(url);
+        res.json(response.data);
+    } catch (error) {
+        handleApiError(error, res, locationIdentifier);
+    }
 });
 
-app.get('/api/previsao/:cidade', async (req, res) => {
-    // ... (código existente sem alterações)
+// Endpoint unificado para obter a previsão de 5 dias (por cidade ou coordenadas)
+app.get('/api/previsao', async (req, res) => {
+    const { cidade, lat, lon } = req.query;
+    let url;
+    let locationIdentifier;
+
+    if (cidade) {
+        locationIdentifier = cidade;
+        url = `https://api.openweathermap.org/data/2.5/forecast?q=${cidade}&appid=${apiKey}&units=metric&lang=pt_br`;
+    } else {
+        return res.status(400).json({ error: "Parâmetros 'cidade' ou 'lat/lon' são necessários." });
+    }
+
+    try {
+        console.log(`[Servidor] Buscando previsão para: ${locationIdentifier}`);
+        const response = await axios.get(url);
+        res.json(response.data);
+    } catch (error) {
+        handleApiError(error, res, locationIdentifier);
+    }
 });
 
-
-// ----- NOVOS ENDPOINTS DA GARAGEM INTELIGENTE -----
+// =======================================================
+// ----- ENDPOINTS DA GARAGEM INTELIGENTE - COMPLETOS -----
+// =======================================================
 
 // Endpoint para dicas de manutenção gerais
 app.get('/api/dicas-manutencao', (req, res) => {
@@ -63,16 +114,20 @@ app.get('/api/dicas-manutencao', (req, res) => {
     }
 });
 
-// Endpoint para dicas de manutenção por tipo de veículo
+// Endpoint para dicas de manutenção por tipo de veículo (com lógica melhorada)
 app.get('/api/dicas-manutencao/:tipoVeiculo', (req, res) => {
     const { tipoVeiculo } = req.params;
     console.log(`[Servidor] Requisição recebida para /api/dicas-manutencao/${tipoVeiculo}`);
     
-    // Mapeia o tipo do frontend para a chave no JSON
-    const tipoMapeado = tipoVeiculo.toLowerCase().replace('carro', ''); // "Carro" -> "", "CarroEsportivo" -> "esportivo"
-    const chaveJson = tipoMapeado === '' ? 'carro' : tipoMapeado; // "Caminhao" -> "caminhao"
-    
-    const dicas = dados.dicasManutencao ? dados.dicasManutencao[chaveJson] : null;
+    // Mapeamento explícito e robusto dos tipos de veículo
+    const mapeamentoTipos = {
+        'carro': 'carro',
+        'carroesportivo': 'esportivo',
+        'caminhao': 'caminhao'
+    };
+
+    const chaveJson = mapeamentoTipos[tipoVeiculo.toLowerCase()];
+    const dicas = dados.dicasManutencao && chaveJson ? dados.dicasManutencao[chaveJson] : null;
 
     if (dicas) {
         res.json(dicas);
@@ -91,8 +146,8 @@ app.get('/api/viagens-populares', (req, res) => {
     }
 });
 
-
 // Inicia o servidor
 app.listen(port, () => {
-    // ... (código existente sem alterações)
+    console.log(`[Servidor] Rodando e escutando em http://localhost:${port}`);
+    
 });

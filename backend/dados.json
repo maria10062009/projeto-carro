@@ -1,0 +1,50 @@
+{
+  "dicasManutencao": {
+    "geral": [
+      "Verifique o nível do óleo do motor a cada 1.000 km.",
+      "Calibre os pneus semanalmente, incluindo o estepe.",
+      "Mantenha os fluidos (freio, radiador, limpador de para-brisa) em dia.",
+      "Inspecione as luzes (faróis, setas, freio) regularmente.",
+      "Não ignore ruídos ou comportamentos estranhos no veículo."
+    ],
+    "carro": [
+      "Faça o alinhamento e balanceamento a cada 10.000 km.",
+      "Troque o filtro de ar condicionado anualmente.",
+      "Verifique as pastilhas e discos de freio a cada 20.000 km."
+    ],
+    "caminhao": [
+      "Inspecione o sistema de freios a ar diariamente antes de sair.",
+      "Verifique o estado e o desgaste dos pneus com mais frequência devido ao peso.",
+      "Lubrifique os componentes do chassi conforme o manual.",
+      "Atenção ao nível de Arla 32 em modelos mais novos."
+    ],
+    "esportivo": [
+      "Aqueça o motor por alguns minutos antes de exigir alto desempenho.",
+      "Utilize sempre óleo e combustível de alta performance recomendados.",
+      "Verifique os freios e pneus com extrema frequência, pois o desgaste é maior."
+    ]
+  },
+  "viagensPopulares": [
+    {
+      "destino": "Serra Gaúcha, RS",
+      "descricao": "Ideal para amantes de vinho, frio e paisagens europeias.",
+      "melhor_epoca": "Inverno (Junho a Agosto)"
+    },
+    {
+      "destino": "Rota do Sol, RN",
+      "descricao": "Um roteiro incrível pelas praias e dunas do litoral potiguar.",
+      "melhor_epoca": "Ano todo, especialmente de Setembro a Janeiro"
+    },
+    {
+      "destino": "Estrada Real, MG",
+      "descricao": "Mergulhe na história do Brasil colonial, com muita cultura e gastronomia.",
+      "melhor_epoca": "Abril a Setembro (período de seca)"
+    },
+    {
+      "destino": "Transpantaneira, MT",
+      "descricao": "Uma aventura para observação da vida selvagem no Pantanal.",
+      "melhor_epoca": "Maio a Setembro (período de seca)"
+    }
+  ]
+  
+}
