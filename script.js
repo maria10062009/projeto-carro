@@ -10,11 +10,15 @@
     const WEATHER_FORECAST_API_URL = `${API_BASE_URL}/api/previsao`;
     const CURRENT_WEATHER_API_URL = `${API_BASE_URL}/api/tempoatual`;
     
+    // Novas URLs da API da Missão
+    const DESTAQUES_API_URL = `${API_BASE_URL}/api/garagem/veiculos-destaque`;
+    const SERVICOS_API_URL = `${API_BASE_URL}/api/garagem/servicos-oferecidos`;
+
     const DEFAULT_WEATHER_CITY = 'Sao Paulo';
-    const LOCALSTORAGE_LAST_CITY_KEY = 'garagemWeatherLastCity_v4_1_pastel';
-    const LOCALSTORAGE_FILTER_DAYS_KEY = 'garagemWeatherFilterDays_v4_1_pastel';
-    const LOCALSTORAGE_HIGHLIGHT_PREFS_KEY = 'garagemWeatherHighlightPrefs_v4_1_pastel';
-    const KEY_LOCAL_STORAGE = 'minhaGaragemV4_1_pastel_v2';
+    const LOCALSTORAGE_LAST_CITY_KEY = 'garagemWeatherLastCity_v4_3_fullstack';
+    const LOCALSTORAGE_FILTER_DAYS_KEY = 'garagemWeatherFilterDays_v4_3_fullstack';
+    const LOCALSTORAGE_HIGHLIGHT_PREFS_KEY = 'garagemWeatherHighlightPrefs_v4_3_fullstack';
+    const KEY_LOCAL_STORAGE = 'minhaGaragemV4_3_fullstack';
     
     const TEMP_COLD_LIMIT = 15;
     const TEMP_HOT_LIMIT = 28;
@@ -84,10 +88,10 @@
         somErro: document.getElementById('somErro')
     };
 
-    // --- NOVOS ELEMENTOS PARA DICAS E VIAGENS ---
-    const btnVerDicas = document.getElementById('btnVerDicas');
-    const dicasManutencaoResultado = document.getElementById('dicasManutencaoResultado');
-    const btnViagensPopulares = document.getElementById('btnViagensPopulares');
+    // NOVOS ELEMENTOS DO DOM PARA OS DADOS DO BACKEND
+    const cardsVeiculosDestaqueEl = document.getElementById('cards-veiculos-destaque');
+    const listaServicosOferecidosEl = document.getElementById('lista-servicos-oferecidos');
+
 
     // ==========================================================================
     // ESTADO DA APLICAÇÃO
@@ -104,9 +108,6 @@
     // ==========================================================================
     // CLASSES (Manutencao, Carro, CarroEsportivo, Caminhao)
     // ==========================================================================
-    // ... O código das suas classes (Carro, Caminhão, etc.) permanece o mesmo ...
-    // Para economizar espaço, não vou repetir todo o bloco de classes aqui, 
-    // pois ele não precisou de alterações. Cole o seu bloco de classes original aqui.
     class Manutencao {
         data; tipo; custo; descricao; _tipoClasse = 'Manutencao';
         constructor(dataInput, tipoInput, custoInput, descricaoInput = '') {
@@ -252,7 +253,7 @@
                 }
 
                 return `
-                    <img src="${this.imagem}" alt="Imagem de ${this.modelo}" class="veiculo-imagem" onerror="this.style.display='none'; console.warn('Imagem não encontrada: ${this.imagem}')">
+                    <img src="${this.imagem}" alt="Imagem de ${this.modelo}" class="veiculo-imagem" onerror="this.onerror=null;this.src='images/car.png';">
                     <p><strong>ID:</strong> <small>${this.id}</small></p>
                     <p><strong>Modelo:</strong> ${this.modelo}</p>
                     <p><strong>Cor:</strong> <span class="color-swatch" style="background-color: ${this.cor};" title="${this.cor}"></span> ${this.cor}</p>
@@ -373,77 +374,48 @@
             return partes[0] + cargaHtml + '<p><em>Manutenções:' + partes[1];
         }
     }
-
+    
     // ==========================================================================
     // FUNÇÕES DA APLICAÇÃO
     // ==========================================================================
 
     // --- Funções de Previsão do Tempo ---
     async function fetchWeatherData(cityOrCoords) {
-        let currentUrl, forecastUrl;
-        let logPrefix = "";
-
+        let currentUrl, forecastUrl, logPrefix = "";
         if (typeof cityOrCoords === 'string') {
-            const cidade = cityOrCoords;
-            logPrefix = `(Cidade: ${cidade})`;
+            const cidade = cityOrCoords; logPrefix = `(Cidade: ${cidade})`;
             setWeatherLoadingStates(cidade);
-            // CORRIGIDO: Usa query parameters para o servidor unificado
             currentUrl = `${CURRENT_WEATHER_API_URL}?cidade=${encodeURIComponent(cidade)}`;
             forecastUrl = `${WEATHER_FORECAST_API_URL}?cidade=${encodeURIComponent(cidade)}`;
         } else if (typeof cityOrCoords === 'object' && cityOrCoords.lat && cityOrCoords.lon) {
-            const { lat, lon } = cityOrCoords;
-            logPrefix = `(Coords: ${lat.toFixed(2)},${lon.toFixed(2)})`;
+            const { lat, lon } = cityOrCoords; logPrefix = `(Coords: ${lat.toFixed(2)},${lon.toFixed(2)})`;
             setWeatherLoadingStates("Buscando por localização...");
-            // CORRIGIDO: Usa query parameters para o servidor unificado
             currentUrl = `${CURRENT_WEATHER_API_URL}?lat=${lat}&lon=${lon}`;
             forecastUrl = `${WEATHER_FORECAST_API_URL}?lat=${lat}&lon=${lon}`;
         } else {
-            console.error("ERRO API TEMPO: Parâmetro de busca inválido.", cityOrCoords);
-            adicionarNotificacao("Erro interno ao tentar buscar previsão.", "erro");
-            return;
+            console.error("ERRO API TEMPO: Parâmetro inválido.", cityOrCoords);
+            adicionarNotificacao("Erro interno ao buscar previsão.", "erro"); return;
         }
-
         try {
-            const [currentResponse, forecastResponse] = await Promise.all([
-                fetch(currentUrl),
-                fetch(forecastUrl)
-            ]);
-
-            if (!currentResponse.ok) {
-                const err = await currentResponse.json().catch(() => ({}));
-                throw new Error(`Tempo Atual ${logPrefix}: ${err.error || currentResponse.statusText}`);
-            }
-            if (!forecastResponse.ok) {
-                const err = await forecastResponse.json().catch(() => ({}));
-                throw new Error(`Previsão ${logPrefix}: ${err.error || forecastResponse.statusText}`);
-            }
-            
-            const currentData = await currentResponse.json();
-            current5DayForecastData = await forecastResponse.json();
-
+            const [currentResponse, forecastResponse] = await Promise.all([fetch(currentUrl), fetch(forecastUrl)]);
+            if (!currentResponse.ok) { const err = await currentResponse.json().catch(() => ({})); throw new Error(`Tempo Atual ${logPrefix}: ${err.error || currentResponse.statusText}`); }
+            if (!forecastResponse.ok) { const err = await forecastResponse.json().catch(() => ({})); throw new Error(`Previsão ${logPrefix}: ${err.error || forecastResponse.statusText}`); }
+            const [currentData, forecastData] = await Promise.all([currentResponse.json(), forecastResponse.json()]);
+            current5DayForecastData = forecastData;
             displayCurrentWeather(currentData);
-            processAndDisplay5DayForecast(current5DayForecastData);
-
-            const cityName = currentData.name || current5DayForecastData.city.name;
-            if (cityName) {
-                 localStorage.setItem(LOCALSTORAGE_LAST_CITY_KEY, cityName);
-                 if (cityInputEl) cityInputEl.value = cityName;
-            }
+            processAndDisplay5DayForecast(forecastData);
+            const cityName = currentData.name || forecastData.city.name;
+            if (cityName) { localStorage.setItem(LOCALSTORAGE_LAST_CITY_KEY, cityName); if (cityInputEl) cityInputEl.value = cityName; }
         } catch (error) {
-            console.error("ERRO API TEMPO:", error);
-            const userMessage = typeof cityOrCoords === 'string' ? cityOrCoords : "sua localização";
+            console.error("ERRO API TEMPO:", error); const userMessage = typeof cityOrCoords === 'string' ? cityOrCoords : "sua localização";
             const friendlyErrorMessage = `Erro ao buscar tempo para ${userMessage}. Verifique a conexão ou o nome da cidade.`;
-
             if (weatherCityNameEl) weatherCityNameEl.textContent = userMessage;
             if (currentWeatherDisplayEl) currentWeatherDisplayEl.innerHTML = `<p class="error-text">${friendlyErrorMessage}</p>`;
             if (weatherForecastDisplayEl) weatherForecastDisplayEl.innerHTML = `<p class="error-text">Não foi possível carregar a previsão.</p>`;
-            adicionarNotificacao(friendlyErrorMessage, "erro");
-            current5DayForecastData = null;
+            adicionarNotificacao(friendlyErrorMessage, "erro"); current5DayForecastData = null;
         }
     }
     
-    // ... O resto das suas funções (atualizarDisplay, switchTab, etc.) permanece o mesmo ...
-    // Cole o seu bloco de funções original aqui.
     function setWeatherLoadingStates(cityName = "Carregando...") {
         if (weatherCityNameEl) weatherCityNameEl.textContent = cityName;
         if (currentWeatherDisplayEl) currentWeatherDisplayEl.innerHTML = '<p class="placeholder-text">Buscando tempo atual...</p>';
@@ -451,139 +423,138 @@
     }
 
     function displayCurrentWeather(data) {
-        if (!data || !data.weather || !data.main) {
-            currentWeatherDisplayEl.innerHTML = '<p class="error-text">Dados do tempo atual incompletos.</p>';
-            return;
-        }
-        const icon = data.weather[0].icon;
-        const description = data.weather[0].description.replace(/\b\w/g, l => l.toUpperCase());
-        const temp = Math.round(data.main.temp);
-        const feelsLike = Math.round(data.main.feels_like);
-        const humidity = data.main.humidity;
+        if (!data || !data.weather || !data.main) { currentWeatherDisplayEl.innerHTML = '<p class="error-text">Dados incompletos.</p>'; return; }
+        const { icon, description } = data.weather[0]; const { temp, feels_like, humidity } = data.main;
         const windSpeed = (data.wind.speed * 3.6).toFixed(1);
-
         if (weatherCityNameEl) weatherCityNameEl.textContent = `${data.name}, ${data.sys.country}`;
-
         currentWeatherDisplayEl.innerHTML = `
-            <div class="current-weather-icon">
-                <img src="https://openweathermap.org/img/wn/${icon}@2x.png" alt="${description}" title="${description}">
-            </div>
-            <div class="current-weather-info">
-                <h4>${temp}°C <span class="feels-like">(Sensação: ${feelsLike}°C)</span></h4>
-                <p class="description">${description}</p>
-                <p>Umidade: ${humidity}%</p>
-                <p>Vento: ${windSpeed} km/h</p>
-            </div>
-        `;
+            <div class="current-weather-icon"><img src="https://openweathermap.org/img/wn/${icon}@2x.png" alt="${description}" title="${description}"></div>
+            <div class="current-weather-info"><h4>${Math.round(temp)}°C <span class="feels-like">(Sensação: ${Math.round(feels_like)}°C)</span></h4>
+            <p class="description">${description.replace(/\b\w/g, l => l.toUpperCase())}</p><p>Umidade: ${humidity}%</p><p>Vento: ${windSpeed} km/h</p></div>`;
     }
 
     function processAndDisplay5DayForecast(data) {
-        if (!data || !data.list || data.list.length === 0) {
-            if (weatherForecastDisplayEl) weatherForecastDisplayEl.innerHTML = '<p class="error-text">Dados de previsão não recebidos.</p>';
-            return;
-        }
-
+        if (!data || !data.list || data.list.length === 0) { if (weatherForecastDisplayEl) weatherForecastDisplayEl.innerHTML = '<p class="error-text">Previsão não recebida.</p>'; return; }
         const dailyForecasts = {};
         data.list.forEach(forecast => {
             const date = forecast.dt_txt.split(' ')[0];
-            if (!dailyForecasts[date]) {
-                dailyForecasts[date] = { temps: [], forecasts: [] };
-            }
+            if (!dailyForecasts[date]) { dailyForecasts[date] = { temps: [], forecasts: [] }; }
             dailyForecasts[date].temps.push(forecast.main.temp);
             dailyForecasts[date].forecasts.push(forecast);
         });
-
-        if (weatherForecastDisplayEl) weatherForecastDisplayEl.innerHTML = '';
-        dailyForecastDetailsMap.clear();
-
+        if (weatherForecastDisplayEl) weatherForecastDisplayEl.innerHTML = ''; dailyForecastDetailsMap.clear();
         let dates = Object.keys(dailyForecasts).sort().slice(0, activeFilterDays);
-        
-        if (dates.length === 0) {
-            weatherForecastDisplayEl.innerHTML = '<p class="placeholder-text">Sem previsão para o período selecionado.</p>';
-            return;
-        }
-
+        if (dates.length === 0) { weatherForecastDisplayEl.innerHTML = '<p class="placeholder-text">Sem previsão para o período.</p>'; return; }
         dates.forEach(dateStr => {
-            const dayData = dailyForecasts[dateStr];
-            const minTemp = Math.min(...dayData.temps);
-            const maxTemp = Math.max(...dayData.temps);
-            const representativeForecast = dayData.forecasts.find(f => f.dt_txt.includes("12:00:00")) || dayData.forecasts[0];
-            const icon = representativeForecast.weather[0].icon;
-            const description = representativeForecast.weather[0].description.replace(/\b\w/g, l => l.toUpperCase());
-            const dateObj = new Date(dateStr + "T12:00:00");
+            const dayData = dailyForecasts[dateStr]; const minTemp = Math.min(...dayData.temps); const maxTemp = Math.max(...dayData.temps);
+            const rep = dayData.forecasts.find(f => f.dt_txt.includes("12:00:00")) || dayData.forecasts[0];
+            const { icon, description, id: weatherId } = rep.weather[0]; const dateObj = new Date(dateStr + "T12:00:00");
             const formattedDate = dateObj.toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric' });
-
-            const itemDiv = document.createElement('div');
-            itemDiv.className = 'weather-item';
-
-            const weatherId = representativeForecast.weather[0].id;
-            if (highlightPreferences.rain && weatherId >= 200 && weatherId < 700) {
-                itemDiv.classList.add('highlight-rain');
-            }
-            if (highlightPreferences.cold && minTemp < TEMP_COLD_LIMIT) {
-                itemDiv.classList.add('highlight-cold');
-            }
-            if (highlightPreferences.hot && maxTemp > TEMP_HOT_LIMIT) {
-                itemDiv.classList.add('highlight-hot');
-            }
-
-            itemDiv.innerHTML = `
-                <p class="date">${formattedDate}</p>
-                <img src="https://openweathermap.org/img/wn/${icon}@2x.png" alt="${description}" title="${description}">
-                <p class="temp">${Math.round(minTemp)}° / ${Math.round(maxTemp)}°C</p>
-                <p class="desc">${description}</p>
-            `;
-            dailyForecastDetailsMap.set(itemDiv, representativeForecast);
-            itemDiv.addEventListener('click', handleForecastItemClick);
+            const itemDiv = document.createElement('div'); itemDiv.className = 'weather-item';
+            if (highlightPreferences.rain && weatherId >= 200 && weatherId < 700) itemDiv.classList.add('highlight-rain');
+            if (highlightPreferences.cold && minTemp < TEMP_COLD_LIMIT) itemDiv.classList.add('highlight-cold');
+            if (highlightPreferences.hot && maxTemp > TEMP_HOT_LIMIT) itemDiv.classList.add('highlight-hot');
+            itemDiv.innerHTML = `<p class="date">${formattedDate}</p><img src="https://openweathermap.org/img/wn/${icon}@2x.png" alt="${description}" title="${description}"><p class="temp">${Math.round(minTemp)}° / ${Math.round(maxTemp)}°C</p><p class="desc">${description.replace(/\b\w/g, l => l.toUpperCase())}</p>`;
+            dailyForecastDetailsMap.set(itemDiv, rep); itemDiv.addEventListener('click', handleForecastItemClick);
             if (weatherForecastDisplayEl) weatherForecastDisplayEl.appendChild(itemDiv);
         });
     }
 
     function handleForecastItemClick(event) {
-        const itemDiv = event.currentTarget;
-        const existingDetails = itemDiv.querySelector('.forecast-details-expanded');
-
-        if (existingDetails) {
-            existingDetails.remove();
-        } else {
+        const itemDiv = event.currentTarget; const existingDetails = itemDiv.querySelector('.forecast-details-expanded');
+        if (existingDetails) { existingDetails.remove(); }
+        else {
             document.querySelectorAll('.weather-item .forecast-details-expanded').forEach(el => el.remove());
             const forecastData = dailyForecastDetailsMap.get(itemDiv);
             if (forecastData) {
-                const detailsDiv = document.createElement('div');
-                detailsDiv.className = 'forecast-details-expanded';
+                const detailsDiv = document.createElement('div'); detailsDiv.className = 'forecast-details-expanded';
                 const { feels_like, humidity, pressure } = forecastData.main;
-                const windSpeed = (forecastData.wind.speed * 3.6).toFixed(1);
-                const pop = (forecastData.pop * 100).toFixed(0);
-
-                detailsDiv.innerHTML = `
-                    <p><strong>Sensação:</strong> ${Math.round(feels_like)}°C</p>
-                    <p><strong>Umidade:</strong> ${humidity}%</p>
-                    <p><strong>Pressão:</strong> ${pressure} hPa</p>
-                    <p><strong>Vento:</strong> ${windSpeed} km/h</p>
-                    <p><strong>Chuva:</strong> ${pop}% prob.</p>
-                `;
+                const windSpeed = (forecastData.wind.speed * 3.6).toFixed(1); const pop = (forecastData.pop * 100).toFixed(0);
+                detailsDiv.innerHTML = `<p><strong>Sensação:</strong> ${Math.round(feels_like)}°C</p><p><strong>Umidade:</strong> ${humidity}%</p><p><strong>Pressão:</strong> ${pressure} hPa</p><p><strong>Vento:</strong> ${windSpeed} km/h</p><p><strong>Chuva:</strong> ${pop}% prob.</p>`;
                 itemDiv.appendChild(detailsDiv);
             }
         }
     }
 
+    // --- FUNÇÕES PARA NOVOS ENDPOINTS ---
+
+    async function buscarEExibirVeiculosDestaque() {
+        if (!cardsVeiculosDestaqueEl) return;
+        try {
+            const response = await fetch(DESTAQUES_API_URL);
+            if (!response.ok) throw new Error('Falha ao carregar veículos em destaque.');
+            const veiculos = await response.json();
+            exibirVeiculosDestaque(veiculos);
+        } catch (error) {
+            console.error("Erro ao buscar veículos em destaque:", error);
+            cardsVeiculosDestaqueEl.innerHTML = `<p class="error-text">Não foi possível carregar os destaques.</p>`;
+        }
+    }
+
+    function exibirVeiculosDestaque(veiculos) {
+        if (!cardsVeiculosDestaqueEl) return;
+        cardsVeiculosDestaqueEl.innerHTML = '';
+        if (!veiculos || veiculos.length === 0) {
+            cardsVeiculosDestaqueEl.innerHTML = '<p class="placeholder-text">Nenhum veículo em destaque no momento.</p>';
+            return;
+        }
+        veiculos.forEach(veiculo => {
+            const card = document.createElement('div');
+            card.className = 'destaque-card';
+            card.innerHTML = `
+                <img src="${veiculo.imagemUrl}" alt="Imagem de ${veiculo.modelo}" onerror="this.onerror=null;this.src='images/car.png';">
+                <h4>${veiculo.modelo} (${veiculo.ano})</h4>
+                <p>${veiculo.destaque}</p>
+            `;
+            cardsVeiculosDestaqueEl.appendChild(card);
+        });
+    }
+
+    async function buscarEExibirServicos() {
+        if (!listaServicosOferecidosEl) return;
+        try {
+            const response = await fetch(SERVICOS_API_URL);
+            if (!response.ok) throw new Error('Falha ao carregar serviços.');
+            const servicos = await response.json();
+            exibirServicos(servicos);
+        } catch (error) {
+            console.error("Erro ao buscar serviços:", error);
+            listaServicosOferecidosEl.innerHTML = `<li class="error-text">Não foi possível carregar os serviços.</li>`;
+        }
+    }
+
+    function exibirServicos(servicos) {
+        if (!listaServicosOferecidosEl) return;
+        listaServicosOferecidosEl.innerHTML = '';
+        if (!servicos || servicos.length === 0) {
+            listaServicosOferecidosEl.innerHTML = '<li class="placeholder-text">Nenhum serviço disponível.</li>';
+            return;
+        }
+        servicos.forEach(servico => {
+            const item = document.createElement('li');
+            item.className = 'servico-item-lista';
+            item.innerHTML = `
+                <h4>${servico.nome}</h4>
+                <p class="servico-descricao">${servico.descricao}</p>
+                <p class="servico-preco">Preço: ${servico.precoEstimado}</p>
+            `;
+            listaServicosOferecidosEl.appendChild(item);
+        });
+    }
+
+
     // --- Demais funções da aplicação (UI, Garagem, etc.) ---
     function atualizarDisplay() {
         const veiculo = garagem.find(v => v.id === veiculoSelecionadoId);
         const formManutCampos = formManutencao ? [dataManutencaoInput, tipoManutencaoInput, custoManutencaoInput, descManutencaoInput, formManutencao.querySelector('button')] : [];
-
         if (veiculo) {
             if (tituloVeiculo) tituloVeiculo.textContent = `Detalhes: ${veiculo.modelo}`;
             if (btnRemoverVeiculo) btnRemoverVeiculo.disabled = false;
-            if (divInformacoes) {
-                divInformacoes.innerHTML = veiculo.exibirInformacoes();
-            }
-
+            if (divInformacoes) { divInformacoes.innerHTML = veiculo.exibirInformacoes(); }
             const ehEsportivo = veiculo instanceof CarroEsportivo;
             const ehCaminhao = veiculo instanceof Caminhao;
             if (controlesEsportivo) controlesEsportivo.classList.toggle('hidden', !ehEsportivo);
             if (controlesCaminhao) controlesCaminhao.classList.toggle('hidden', !ehCaminhao);
-
             if (ehEsportivo) {
                 if(btnAtivarTurbo) btnAtivarTurbo.disabled = veiculo.turboAtivado || !veiculo.ligado;
                 if(btnDesativarTurbo) btnDesativarTurbo.disabled = !veiculo.turboAtivado;
@@ -593,39 +564,27 @@
                 if(btnCarregar) btnCarregar.disabled = false;
                 if(btnDescarregar) btnDescarregar.disabled = false;
             }
-            
             if(btnLigar) btnLigar.disabled = veiculo.ligado;
             if(btnDesligar) btnDesligar.disabled = !veiculo.ligado || veiculo.velocidade > 0;
             if(btnAcelerar) btnAcelerar.disabled = !veiculo.ligado || veiculo.velocidade >= veiculo.velocidadeMaxima;
             if(btnFrear) btnFrear.disabled = veiculo.velocidade === 0;
             if(btnBuzinar) btnBuzinar.disabled = false;
-
             exibirManutencoesUI(veiculo);
             formManutCampos.forEach(campo => { if (campo) campo.disabled = false; });
             if (tabButtonDetails) tabButtonDetails.disabled = false;
-            if (btnVerDicas) btnVerDicas.disabled = false;
-
         } else {
             if (tituloVeiculo) tituloVeiculo.textContent = 'Detalhes';
             if (divInformacoes) divInformacoes.innerHTML = '<p class="placeholder-text">Selecione um veículo.</p>';
             if (historicoListaUl) historicoListaUl.innerHTML = '<li class="placeholder-text">Sem veículo.</li>';
             if (agendamentosListaUl) agendamentosListaUl.innerHTML = '<li class="placeholder-text">Sem veículo.</li>';
-
             if (controlesEsportivo) controlesEsportivo.classList.add('hidden');
             if (controlesCaminhao) controlesCaminhao.classList.add('hidden');
-
             [btnLigar, btnDesligar, btnAcelerar, btnFrear, btnBuzinar, btnRemoverVeiculo, btnAtivarTurbo, btnDesativarTurbo, cargaInput, btnCarregar, btnDescarregar]
                 .forEach(el => { if (el) el.disabled = true; });
             formManutCampos.forEach(campo => { if (campo) campo.disabled = true; });
             if (tabButtonDetails) tabButtonDetails.disabled = true;
-
-            if (btnVerDicas) btnVerDicas.disabled = false; // Habilita para dicas gerais
-            if (dicasManutencaoResultado) dicasManutencaoResultado.innerHTML = '';
-
             const activeDetailsTab = document.getElementById('tab-details');
-            if (activeDetailsTab && activeDetailsTab.classList.contains('active')) {
-                switchTab('tab-garage');
-            }
+            if (activeDetailsTab && activeDetailsTab.classList.contains('active')) { switchTab('tab-garage'); }
         }
     }
     
@@ -640,6 +599,7 @@
         if (!foundTab) { console.warn(`WARN: Aba inexistente: ${tabId}`); }
         else { console.log(`LOG: Aba ativada: ${tabId}`); }
     }
+
     function atualizarListaVeiculosUI() {
         if(!listaVeiculosDiv) return;
         listaVeiculosDiv.innerHTML = '';
@@ -657,41 +617,31 @@
             listaVeiculosDiv.appendChild(btn);
         });
     }
+
     async function selecionarVeiculo(veiculoId) {
         veiculoSelecionadoId = veiculoId;
         const veiculo = garagem.find(v => v.id === veiculoId);
         console.log(`LOG: Selecionado: ID ${veiculoId} (${veiculo ? veiculo.modelo : 'Nenhum'})`);
-
         if (veiculo && detalhesVeiculosJSON) {
             const nomeModeloBase = veiculo.modelo.split(' ')[0];
             let detalhesEncontrados = null;
-            if (detalhesVeiculosJSON[veiculo.modelo]) {
-                detalhesEncontrados = detalhesVeiculosJSON[veiculo.modelo];
-            }
+            if (detalhesVeiculosJSON[veiculo.modelo]) { detalhesEncontrados = detalhesVeiculosJSON[veiculo.modelo]; }
             else {
                 const chaveEncontrada = Object.keys(detalhesVeiculosJSON).find(
                     key => key.toLowerCase().startsWith(veiculo.modelo.toLowerCase()) ||
                         veiculo.modelo.toLowerCase().startsWith(key.toLowerCase()) ||
                         (nomeModeloBase && key.toLowerCase().includes(nomeModeloBase.toLowerCase()))
                 );
-                if (chaveEncontrada) {
-                    detalhesEncontrados = detalhesVeiculosJSON[chaveEncontrada];
-                }
+                if (chaveEncontrada) { detalhesEncontrados = detalhesVeiculosJSON[chaveEncontrada]; }
             }
-            if (detalhesEncontrados) {
-                veiculo.setDetalhesExtras(detalhesEncontrados);
-            } else if (veiculo.detalhesExtras) {
-                veiculo.setDetalhesExtras(null);
-            }
-        } else if (veiculo && !detalhesVeiculosJSON) {
-            console.warn("JSON de detalhes do veículo não carregado.");
-        }
-
+            if (detalhesEncontrados) { veiculo.setDetalhesExtras(detalhesEncontrados); }
+            else if (veiculo.detalhesExtras) { veiculo.setDetalhesExtras(null); }
+        } else if (veiculo && !detalhesVeiculosJSON) { console.warn("JSON de detalhes do veículo não carregado."); }
         atualizarListaVeiculosUI();
         atualizarDisplay();
-        if (veiculoSelecionadoId) { switchTab('tab-details'); }
-        else { switchTab('tab-garage'); }
+        if (veiculoSelecionadoId) { switchTab('tab-details'); } else { switchTab('tab-garage'); }
     }
+
     function exibirManutencoesUI(veiculo) {
         if(!historicoListaUl || !agendamentosListaUl) return;
         historicoListaUl.innerHTML = '<li class="placeholder-text">...</li>';
@@ -706,7 +656,6 @@
             historicoListaUl.innerHTML = '';
             if (historico.length === 0) { historicoListaUl.innerHTML = '<li class="placeholder-text">Nenhum histórico.</li>'; }
             else { historico.forEach(m => { const li = document.createElement('li'); li.textContent = m.formatar(); historicoListaUl.appendChild(li); }); }
-
             const agendamentos = veiculo.getAgendamentosFuturos();
             agendamentosListaUl.innerHTML = '';
             if (agendamentos.length === 0) { agendamentosListaUl.innerHTML = '<li class="placeholder-text">Nenhum agendamento.</li>'; }
@@ -729,6 +678,7 @@
             agendamentosListaUl.innerHTML = '<li class="error-text">Erro agendamentos.</li>';
         }
     }
+
     function interagir(acao) {
         const veiculo = garagem.find(v => v.id === veiculoSelecionadoId);
         if (!veiculo) { adicionarNotificacao("Selecione um veículo.", "erro"); return; }
@@ -740,16 +690,10 @@
                 case 'acelerar': veiculo.acelerar(); break;
                 case 'frear': veiculo.frear(); break;
                 case 'buzinar': veiculo.buzinar(); break;
-                case 'ativarTurbo':
-                    if (veiculo instanceof CarroEsportivo) veiculo.ativarTurbo();
-                    else { veiculo.alerta("Turbo não disponível.", "aviso"); tocarSom('somErro'); } break;
+                case 'ativarTurbo': if (veiculo instanceof CarroEsportivo) veiculo.ativarTurbo(); else { veiculo.alerta("Turbo não disponível.", "aviso"); tocarSom('somErro'); } break;
                 case 'desativarTurbo': if (veiculo instanceof CarroEsportivo) veiculo.desativarTurbo(); break;
-                case 'carregar':
-                    if (veiculo instanceof Caminhao && cargaInput) { const p = parseFloat(cargaInput.value); if (!isNaN(p)) veiculo.carregar(p); else { veiculo.alerta("Valor de carga inválido.", "erro"); tocarSom('somErro'); } }
-                    else if(veiculo) { veiculo.alerta("Ação 'Carregar' não disponível.", "aviso"); tocarSom('somErro'); } break;
-                case 'descarregar':
-                    if (veiculo instanceof Caminhao && cargaInput) { const p = parseFloat(cargaInput.value); if (!isNaN(p)) veiculo.descarregar(p); else { veiculo.alerta("Valor de descarga inválido.", "erro"); tocarSom('somErro'); } }
-                    else if(veiculo) { veiculo.alerta("Ação 'Descarregar' não disponível.", "aviso"); tocarSom('somErro'); } break;
+                case 'carregar': if (veiculo instanceof Caminhao && cargaInput) { const p = parseFloat(cargaInput.value); if (!isNaN(p)) veiculo.carregar(p); else { veiculo.alerta("Valor de carga inválido.", "erro"); tocarSom('somErro'); } } else if(veiculo) { veiculo.alerta("Ação 'Carregar' não disponível.", "aviso"); tocarSom('somErro'); } break;
+                case 'descarregar': if (veiculo instanceof Caminhao && cargaInput) { const p = parseFloat(cargaInput.value); if (!isNaN(p)) veiculo.descarregar(p); else { veiculo.alerta("Valor de descarga inválido.", "erro"); tocarSom('somErro'); } } else if(veiculo) { veiculo.alerta("Ação 'Descarregar' não disponível.", "aviso"); tocarSom('somErro'); } break;
                 default: console.warn(`WARN: Ação desconhecida: ${acao}`); adicionarNotificacao(`Ação "${acao}" não reconhecida.`, 'erro');
             }
         } catch (error) {
@@ -757,6 +701,7 @@
             adicionarNotificacao(`Erro ao executar ${acao}: ${error.message}`, "erro");
         }
     }
+    
     function adicionarNotificacao(mensagem, tipo = 'info', duracaoMs = 5000) {
         console.log(`NOTIFICAÇÃO [${tipo}]: ${mensagem}`);
         if (!notificacoesDiv) { console.error("ERRO: Container de notificações não encontrado."); return; }
@@ -779,6 +724,7 @@
             currentTimerId = setTimeout(() => { closeButton.onclick(); }, duracaoMs / 1.5);
         });
     }
+
     function verificarProximosAgendamentos(veiculo, agendamentos) {
         const hojeUTC = new Date();
         const hojeInicioDiaUTC = new Date(Date.UTC(hojeUTC.getUTCFullYear(), hojeUTC.getUTCMonth(), hojeUTC.getUTCDate()));
@@ -796,6 +742,7 @@
             }
         });
     }
+    
     function salvarGaragem() {
         try {
             const garagemParaSalvar = garagem.map(veiculo => ({
@@ -809,6 +756,7 @@
             adicionarNotificacao("Falha grave ao salvar dados!", "erro", 15000);
         }
     }
+    
     function carregarGaragem() {
         try {
             const garagemJSONData = localStorage.getItem(KEY_LOCAL_STORAGE);
@@ -834,6 +782,7 @@
             return [];
         }
     }
+    
     function reidratarHistoricoAux(historicoArray, modeloVeiculo = '?') {
         if (!Array.isArray(historicoArray)) return [];
         return historicoArray.map(item => {
@@ -1001,67 +950,7 @@
             });
         }
         
-        // --- LISTENERS NOVOS ---
-        if (btnVerDicas) {
-            btnVerDicas.addEventListener('click', async () => {
-                const veiculo = garagem.find(v => v.id === veiculoSelecionadoId);
-                let url;
-                let tipoVeiculoParaTitulo = 'Gerais';
-
-                if (veiculo && veiculo._tipoClasse) {
-                    tipoVeiculoParaTitulo = veiculo._tipoClasse.replace('Carro', '');
-                    if(tipoVeiculoParaTitulo === '') tipoVeiculoParaTitulo = 'Carro';
-                    url = `${API_BASE_URL}/api/dicas-manutencao/${veiculo._tipoClasse}`;
-                } else {
-                    url = `${API_BASE_URL}/api/dicas-manutencao`;
-                }
-
-                dicasManutencaoResultado.innerHTML = '<p class="placeholder-text">Buscando dicas...</p>';
-
-                try {
-                    const response = await fetch(url);
-                    if (!response.ok) {
-                        const err = await response.json();
-                        throw new Error(err.error || 'Falha ao buscar dicas.');
-                    }
-                    const dicas = await response.json();
-                    
-                    let htmlDicas = `<h4>Dicas para ${tipoVeiculoParaTitulo}</h4><ul>`;
-                    dicas.forEach(dica => { htmlDicas += `<li>${dica}</li>`; });
-                    htmlDicas += '</ul>';
-                    dicasManutencaoResultado.innerHTML = htmlDicas;
-
-                } catch (error) {
-                    console.error("Erro ao buscar dicas de manutenção:", error);
-                    dicasManutencaoResultado.innerHTML = `<p class="error-text">Erro: ${error.message}</p>`;
-                }
-            });
-        }
-
-        if (btnViagensPopulares) {
-            btnViagensPopulares.addEventListener('click', async () => {
-                try {
-                    // A constante API_BASE_URL já é 'http://localhost:3001', então a URL está correta.
-                    const response = await fetch(`${API_BASE_URL}/api/viagens-populares`);
-                    if (!response.ok) throw new Error('Não foi possível buscar as sugestões de viagem.');
-                    const viagens = await response.json();
-                    
-                    adicionarNotificacao('Aqui vão algumas sugestões de viagem!', 'info', 4000);
-                    viagens.forEach((viagem, index) => {
-                        setTimeout(() => {
-                            // Supondo que seu dados.json para viagens tenha 'destino' e 'descricao'
-                            const mensagem = `${viagem.destino}: Ideal para ${viagem.tipo}. Melhor época: ${viagem.melhorEpoca}`;
-                            adicionarNotificacao(mensagem, 'sucesso', 8000);
-                        }, (index + 1) * 2500);
-                    });
-                } catch (error) {
-                    console.error('Erro ao buscar viagens populares:', error);
-                    adicionarNotificacao(error.message, 'erro');
-                }
-            });
-        }
-
-        // --- Listener para botões de ação genéricos ---
+        // Listener para botões de ação genéricos
         const acoesContainer = document.querySelector('.acoes-container');
         if (acoesContainer) {
             acoesContainer.addEventListener('click', (e) => {
@@ -1084,11 +973,14 @@
     // INICIALIZAÇÃO DA APLICAÇÃO
     // ==========================================================================
     async function inicializarApp() {
-        console.log("LOG: Inicializando Garagem Inteligente v4.2...");
+        console.log("LOG: Inicializando Garagem Inteligente v4.3...");
         
+        setupEventListeners();
+
         loadSavedFilter();
         loadHighlightPreferences();
         atualizarVolume();
+        
         await carregarDetalhesVeiculos();
         garagem = carregarGaragem();
         
@@ -1096,11 +988,13 @@
         switchTab('tab-garage');
         atualizarDisplay();
         
-        setupEventListeners();
-        
         const lastCity = localStorage.getItem(LOCALSTORAGE_LAST_CITY_KEY) || DEFAULT_WEATHER_CITY;
         fetchWeatherData(lastCity);
         if (cityInputEl) cityInputEl.value = lastCity;
+
+        // Buscar dados adicionais do backend na inicialização
+        buscarEExibirVeiculosDestaque();
+        buscarEExibirServicos();
 
         console.log("LOG: Aplicação inicializada com sucesso.");
         adicionarNotificacao("Bem-vindo à sua Garagem Inteligente!", "info", 3000);
@@ -1109,7 +1003,6 @@
     // --- Funções Auxiliares de Inicialização ---
     async function carregarDetalhesVeiculos() {
         try {
-            // Supondo que você tenha um arquivo vehicle_details.json na mesma pasta do seu HTML
             const response = await fetch('vehicle_details.json');
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             detalhesVeiculosJSON = await response.json();
@@ -1147,17 +1040,18 @@
     }
 
     function atualizarVolume() {
-        const savedVolume = localStorage.getItem('garagemVolumePref_v4_1_pastel_v2');
+        const savedVolume = localStorage.getItem('garagemVolumePref_v4_3_fullstack');
         const volume = savedVolume !== null ? parseFloat(savedVolume) : 0.5;
         if(volumeSlider) volumeSlider.value = volume;
         for (const key in audioElements) {
             if (audioElements[key]) { audioElements[key].volume = volume; }
         }
         if(volumeSlider) volumeSlider.addEventListener('input', () => {
+             const newVolume = volumeSlider.value;
              for (const key in audioElements) {
-                if (audioElements[key]) { audioElements[key].volume = volumeSlider.value; }
+                if (audioElements[key]) { audioElements[key].volume = newVolume; }
             }
-            localStorage.setItem('garagemVolumePref_v4_1_pastel_v2', volumeSlider.value);
+            localStorage.setItem('garagemVolumePref_v4_3_fullstack', newVolume);
         });
     }
 
@@ -1167,9 +1061,7 @@
             try {
                 audioElement.currentTime = 0;
                 audioElement.play().catch(error => {
-                    if (error.name !== 'NotAllowedError') {
-                        console.error(`ERRO ao tocar som ${somId}:`, error);
-                    }
+                    if (error.name !== 'NotAllowedError') { console.error(`ERRO ao tocar som ${somId}:`, error); }
                 });
             } catch (error) { console.error(`ERRO inesperado ao tentar tocar ${somId}:`, error); }
         } else { console.warn(`WARN Áudio: Elemento de áudio não encontrado ou inválido: ${somId}`); }

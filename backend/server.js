@@ -1,153 +1,115 @@
-// server.js
+// server.js - Backend para a Garagem Inteligente
 
-// Importações
-import express from 'express';
-import dotenv from 'dotenv';
-import axios from 'axios';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
-import path from 'path';
+// 1. IMPORTAÇÕES E CONFIGURAÇÃO
+require('dotenv').config();
+const express = require('express');
+const axios = require('axios');
+const cors = require('cors');
 
-// Configuração para obter o __dirname em módulos ES
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Carrega variáveis de ambiente do arquivo .env
-dotenv.config();
-
-// Carrega os dados do nosso arquivo JSON
-let dados = {};
-try {
-    const rawData = fs.readFileSync(path.join(__dirname, 'dados.json'));
-    dados = JSON.parse(rawData);
-    console.log('[Servidor] Arquivo dados.json carregado com sucesso.');
-} catch (error) {
-    console.error('[Servidor ERRO] Não foi possível ler ou parsear o arquivo dados.json:', error);
-}
-
-// Inicializa o aplicativo Express
 const app = express();
-const port = process.env.PORT || 3001;
-let apiKey = process.env.OPENWEATHER_API_KEY;
+const port = 3001;
 
-apiKey="63a1f362fee743f16dab84c7bf24548a";
-console.log(apiKey);
+// 2. MIDDLEWARE
+app.use(cors()); // Permite que o frontend (em outra porta/domínio) acesse este backend
+app.use(express.json());
 
-// Middleware para permitir CORS
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-    next();
+// ==========================================================================
+// ESTOQUES DE DADOS (Simulação de Banco de Dados)
+// ==========================================================================
+
+const veiculosDestaque = [
+    { id: 'destaque01', modelo: "Ford Maverick Híbrido", ano: 2024, destaque: "Economia com Estilo de Picape", imagemUrl: "images/maverick.png" },
+    { id: 'destaque02', modelo: "VW ID.Buzz (Kombi Elétrica)", ano: 2025, destaque: "A Nostalgia do Futuro", imagemUrl: "images/idbuzz.png" },
+    { id: 'destaque03', modelo: "Fiat Titano", ano: 2024, destaque: "Robustez para qualquer desafio", imagemUrl: "images/titano.png" }
+];
+
+const servicosGaragem = [
+    { id: "svc001", nome: "Diagnóstico Eletrônico Completo", descricao: "Verificação de todos os sistemas eletrônicos do veículo com scanner de última geração.", precoEstimado: "R$ 250,00" },
+    { id: "svc002", nome: "Alinhamento e Balanceamento 3D", descricao: "Para uma direção perfeita e maior durabilidade dos pneus.", precoEstimado: "R$ 180,00" },
+    { id: "svc003", nome: "Troca de Óleo e Filtros Premium", descricao: "Utilizamos apenas óleos e filtros recomendados pela montadora.", precoEstimado: "A partir de R$ 300,00" },
+    { id: "svc004", nome: "Revisão Completa de Freios", descricao: "Inspeção e troca de pastilhas, discos e fluido de freio.", precoEstimado: "Consulte-nos" }
+];
+
+// ==========================================================================
+// ROTAS DA API (Balcões de Atendimento)
+// ==========================================================================
+
+// Rota Raiz para Teste
+app.get('/', (req, res) => {
+    res.send('API da Garagem Inteligente está no ar! Acesse /api/garagem/veiculos-destaque ou /api/garagem/servicos-oferecidos');
 });
 
-// =========================================================
-// ----- ENDPOINTS DA API DE CLIMA (Proxy) - COMPLETOS -----
-// =========================================================
+// --- Endpoints de Previsão do Tempo (Proxy) ---
+const WEATHER_API_KEY = process.env.OPENWEATHER_API_KEY;
+const OPENWEATHER_BASE_URL = 'https://api.openweathermap.org/data/2.5';
 
-// Função auxiliar para lidar com erros da API
-const handleApiError = (error, res, location) => {
-    console.error(`[Servidor ERRO] Falha ao buscar dados para ${location}:`, error.message);
-    const status = error.response ? error.response.status : 500;
-    const message = status === 404 ? `Localização não encontrada: ${location}` : "Erro ao contatar a API de clima.";
-    res.status(status).json({ error: message });
-};
-
-// Endpoint unificado para obter o tempo atual (por cidade ou coordenadas)
 app.get('/api/tempoatual', async (req, res) => {
-    const { cidade, lat, lon } = req.query;
-    let url;
-    let locationIdentifier;
-
-    if (cidade) {
-        locationIdentifier = cidade;
-        url = `https://api.openweathermap.org/data/2.5/weather?q=${cidade}&appid=${apiKey}&units=metric&lang=pt_br`;
-        console.log(url);
-    } else if (lat && lon) {
-        locationIdentifier = `lat=${lat}, lon=${lon}`;
-        url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=pt_br`;
-    } else {
-        return res.status(400).json({ error: "Parâmetros 'cidade' ou 'lat/lon' são necessários." });
-    }
-
     try {
-        console.log(`[Servidor] Buscando tempo atual para: ${locationIdentifier}`);
+        const { lat, lon, cidade } = req.query;
+        let url;
+        if (lat && lon) {
+            url = `${OPENWEATHER_BASE_URL}/weather?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}&units=metric&lang=pt_br`;
+        } else if (cidade) {
+            url = `${OPENWEATHER_BASE_URL}/weather?q=${cidade}&appid=${WEATHER_API_KEY}&units=metric&lang=pt_br`;
+        } else {
+            return res.status(400).json({ error: 'Cidade ou coordenadas são necessárias.' });
+        }
         const response = await axios.get(url);
         res.json(response.data);
     } catch (error) {
-        handleApiError(error, res, locationIdentifier);
+        res.status(error.response?.status || 500).json({ error: 'Erro ao buscar dados do tempo atual.' });
     }
 });
 
-// Endpoint unificado para obter a previsão de 5 dias (por cidade ou coordenadas)
 app.get('/api/previsao', async (req, res) => {
-    const { cidade, lat, lon } = req.query;
-    let url;
-    let locationIdentifier;
-
-    if (cidade) {
-        locationIdentifier = cidade;
-        url = `https://api.openweathermap.org/data/2.5/forecast?q=${cidade}&appid=${apiKey}&units=metric&lang=pt_br`;
-    } else {
-        return res.status(400).json({ error: "Parâmetros 'cidade' ou 'lat/lon' são necessários." });
-    }
-
     try {
-        console.log(`[Servidor] Buscando previsão para: ${locationIdentifier}`);
+        const { lat, lon, cidade } = req.query;
+        let url;
+        if (lat && lon) {
+            url = `${OPENWEATHER_BASE_URL}/forecast?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}&units=metric&lang=pt_br`;
+        } else if (cidade) {
+            url = `${OPENWEATHER_BASE_URL}/forecast?q=${cidade}&appid=${WEATHER_API_KEY}&units=metric&lang=pt_br`;
+        } else {
+            return res.status(400).json({ error: 'Cidade ou coordenadas são necessárias.' });
+        }
         const response = await axios.get(url);
         res.json(response.data);
     } catch (error) {
-        handleApiError(error, res, locationIdentifier);
+        res.status(error.response?.status || 500).json({ error: 'Erro ao buscar dados da previsão.' });
     }
 });
 
-// =======================================================
-// ----- ENDPOINTS DA GARAGEM INTELIGENTE - COMPLETOS -----
-// =======================================================
+// --- NOVOS ENDPOINTS DA MISSÃO ---
 
-// Endpoint para dicas de manutenção gerais
-app.get('/api/dicas-manutencao', (req, res) => {
-    console.log('[Servidor] Requisição recebida para /api/dicas-manutencao');
-    if (dados.dicasManutencao && dados.dicasManutencao.geral) {
-        res.json(dados.dicasManutencao.geral);
+// Endpoint para Veículos em Destaque
+app.get('/api/garagem/veiculos-destaque', (req, res) => {
+    console.log(`[Servidor] Requisição recebida para /api/garagem/veiculos-destaque`);
+    res.json(veiculosDestaque);
+});
+
+// Endpoint para Serviços Oferecidos
+app.get('/api/garagem/servicos-oferecidos', (req, res) => {
+    console.log(`[Servidor] Requisição recebida para /api/garagem/servicos-oferecidos`);
+    res.json(servicosGaragem);
+});
+
+// (Opcional) Endpoint para um serviço específico por ID
+app.get('/api/garagem/servicos-oferecidos/:idServico', (req, res) => {
+    const { idServico } = req.params;
+    console.log(`[Servidor] Buscando serviço com ID: ${idServico}`);
+    const servico = servicosGaragem.find(s => s.id === idServico);
+    if (servico) {
+        res.json(servico);
     } else {
-        res.status(500).json({ error: "Dados de dicas gerais não encontrados no servidor." });
+        res.status(404).json({ error: 'Serviço não encontrado.' });
     }
 });
 
-// Endpoint para dicas de manutenção por tipo de veículo (com lógica melhorada)
-app.get('/api/dicas-manutencao/:tipoVeiculo', (req, res) => {
-    const { tipoVeiculo } = req.params;
-    console.log(`[Servidor] Requisição recebida para /api/dicas-manutencao/${tipoVeiculo}`);
-    
-    // Mapeamento explícito e robusto dos tipos de veículo
-    const mapeamentoTipos = {
-        'carro': 'carro',
-        'carroesportivo': 'esportivo',
-        'caminhao': 'caminhao'
-    };
 
-    const chaveJson = mapeamentoTipos[tipoVeiculo.toLowerCase()];
-    const dicas = dados.dicasManutencao && chaveJson ? dados.dicasManutencao[chaveJson] : null;
-
-    if (dicas) {
-        res.json(dicas);
-    } else {
-        res.status(404).json({ error: `Nenhuma dica de manutenção encontrada para o tipo: ${tipoVeiculo}` });
-    }
-});
-
-// Endpoint para viagens populares
-app.get('/api/viagens-populares', (req, res) => {
-    console.log('[Servidor] Requisição recebida para /api/viagens-populares');
-    if (dados.viagensPopulares) {
-        res.json(dados.viagensPopulares);
-    } else {
-        res.status(500).json({ error: "Dados de viagens populares não encontrados no servidor." });
-    }
-});
-
-// Inicia o servidor
+// 3. INICIAR SERVIDOR
 app.listen(port, () => {
-    console.log(`[Servidor] Rodando e escutando em http://localhost:${port}`);
-    
+    console.log(`Backend da Garagem Inteligente rodando em http://localhost:${port}`);
+    if (!WEATHER_API_KEY) {
+        console.warn("\nAVISO: A chave da API OpenWeatherMap não foi encontrada. Crie um arquivo .env com OPENWEATHER_API_KEY=sua_chave para as funções de clima funcionarem.\n");
+    }
 });

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Garagem Inteligente v4.1 - Feedback Interativo e Clima</title>
+    <title>Garagem Inteligente v4.3 - Full-Stack</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="estilo.css">
     <link rel="icon" href="images/favicon.png" type="image/png">
@@ -11,45 +11,31 @@
 <body>
     <div class="app-wrapper">
         <header class="main-header">
-            <h1>Garagem Inteligente v4.1</h1>
+            <h1>Garagem Inteligente v4.3</h1>
 
-            <div id="weather-forecast-container">
+            <div id="weather-forecast-container" class="painel">
                 <div class="weather-city-input-container">
                     <label for="cityInput">Cidade:</label>
                     <input type="text" id="cityInput" placeholder="Digite a cidade">
                     <button id="fetchWeatherBtn" title="Buscar previsão para a cidade digitada">Buscar</button>
                     <button id="getGeoLocationWeatherBtn" title="Usar minha localização atual">📍 Localização</button>
                 </div>
-
                 <h2 id="weather-location-title">Previsão para: <span id="weather-city-name">Carregando...</span></h2>
-
                 <div id="current-weather-display">
                     <p class="placeholder-text">Carregando tempo atual...</p>
                 </div>
-
                 <div class="weather-forecast-filter-controls">
                     <span>Ver previsão para:</span>
                     <button class="filter-btn active" data-days="5" title="Mostrar previsão para os próximos 5 dias">5 Dias</button>
                     <button class="filter-btn" data-days="3" title="Mostrar previsão para os próximos 3 dias">3 Dias</button>
                     <button class="filter-btn" data-days="1" title="Mostrar previsão apenas para hoje">Hoje</button>
                 </div>
-
                 <div class="weather-highlight-controls">
                     <span>Destaques:</span>
-                    <label class="highlight-toggle">
-                        <input type="checkbox" id="chkHighlightRain">
-                        <span class="toggle-slider"></span> Chuva 💧
-                    </label>
-                    <label class="highlight-toggle">
-                        <input type="checkbox" id="chkHighlightCold">
-                        <span class="toggle-slider"></span> Frio (<15°C) ❄️
-                    </label>
-                    <label class="highlight-toggle">
-                        <input type="checkbox" id="chkHighlightHot">
-                        <span class="toggle-slider"></span> Calor (>28°C) 🔥
-                    </label>
+                    <label class="highlight-toggle"><input type="checkbox" id="chkHighlightRain"> Chuva 💧</label>
+                    <label class="highlight-toggle"><input type="checkbox" id="chkHighlightCold"> Frio (<15°C) ❄️</label>
+                    <label class="highlight-toggle"><input type="checkbox" id="chkHighlightHot"> Calor (>28°C) 🔥</label>
                 </div>
-
                 <div id="weather-forecast-display" class="weather-forecast-items">
                     <p class="placeholder-text">Carregando previsão...</p>
                 </div>
@@ -68,7 +54,6 @@
         </header>
 
         <main class="tab-content-area">
-            <!-- Seção/Aba: Adicionar Veículo -->
             <section id="tab-add" class="tab-pane">
                 <div class="painel">
                     <h2>Adicionar Novo Veículo</h2>
@@ -100,8 +85,6 @@
                     </form>
                 </div>
             </section>
-
-            <!-- Seção/Aba: Minha Garagem -->
             <section id="tab-garage" class="tab-pane active">
                 <div class="painel">
                     <h2>Minha Garagem</h2>
@@ -111,8 +94,6 @@
                     </div>
                 </div>
             </section>
-
-            <!-- Seção/Aba: Detalhes do Veículo -->
             <section id="tab-details" class="tab-pane">
                 <div class="painel">
                     <div class="details-header">
@@ -163,26 +144,43 @@
                             <ul id="historicoLista"><li class="placeholder-text">Nenhum histórico.</li></ul>
                             <h4>Agendamentos (Futuro)</h4>
                             <ul id="agendamentosLista"><li class="placeholder-text">Nenhum agendamento.</li></ul>
-                            
-                            <div class="dicas-container">
-                                <button id="btnVerDicas" class="botao-secundario" disabled>Ver Dicas de Manutenção</button>
-                                <div id="dicasManutencaoResultado" class="dicas-resultado-box"></div>
-                            </div>
                         </div>
                     </div>
                 </div>
             </section>
         </main>
         
+        <!-- ======================================================= -->
+        <!--     NOVAS SEÇÕES PARA OS DADOS VINDOS DO BACKEND        -->
+        <!-- ======================================================= -->
+
+        <section id="secao-veiculos-destaque" class="painel">
+            <h2>Veículos em Destaque</h2>
+            <div id="cards-veiculos-destaque" class="destaques-grid">
+                <!-- Conteúdo será inserido via JavaScript -->
+                <p class="placeholder-text">Carregando destaques...</p>
+            </div>
+        </section>
+
+        <section id="secao-servicos" class="painel">
+            <h2>Nossos Serviços</h2>
+            <ul id="lista-servicos-oferecidos">
+                <!-- Conteúdo será inserido via JavaScript -->
+                <li class="placeholder-text">Carregando serviços...</li>
+            </ul>
+        </section>
+        
+        <!-- ======================================================= -->
+
         <footer class="main-footer-credits">
-            <p>Garagem Inteligente v4.1 - Desenvolvido com HTML, CSS e JavaScript</p>
-            <button id="btnViagensPopulares" title="Receber sugestões de viagens de carro">✈️ Sugestões de Viagem</button>
+            <p>Garagem Inteligente v4.3 - Desenvolvido com HTML, CSS e JavaScript</p>
         </footer>
 
     </div> <!-- Fim do .app-wrapper -->
 
     <div id="notificacoes" class="notificacoes-container"></div>
 
+    <!-- Áudios -->
     <audio id="somLigar" src="audio/motor-v8-plymouth-barracuda-encendido-acelerada-marcha-243224.mp3" preload="auto"></audio>
     <audio id="somDesligar" src="audio/tuning-whoosh-108007.mp3" preload="auto"></audio>
     <audio id="somAcelerar" src="audio/acceleration-1-6916.mp3" preload="auto"></audio>
