@@ -6,7 +6,7 @@
     <title>Garagem Inteligente v4.3 - Full-Stack</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="estilo.css">
-    <link rel="icon" href="images/favicon.png" type="image/png">
+    <link rel="icon" href="imagens/favicon.png" type="image/png">
 </head>
 <body>
     <div class="app-wrapper">
@@ -33,8 +33,8 @@
                 <div class="weather-highlight-controls">
                     <span>Destaques:</span>
                     <label class="highlight-toggle"><input type="checkbox" id="chkHighlightRain"> Chuva 💧</label>
-                    <label class="highlight-toggle"><input type="checkbox" id="chkHighlightCold"> Frio (<15°C) ❄️</label>
-                    <label class="highlight-toggle"><input type="checkbox" id="chkHighlightHot"> Calor (>28°C) 🔥</label>
+                    <label class="highlight-toggle"><input type="checkbox" id="chkHighlightCold"> Frio (&lt;15°C) ❄️</label>
+                    <label class="highlight-toggle"><input type="checkbox" id="chkHighlightHot"> Calor (&gt;28°C) 🔥</label>
                 </div>
                 <div id="weather-forecast-display" class="weather-forecast-items">
                     <p class="placeholder-text">Carregando previsão...</p>
@@ -150,14 +150,9 @@
             </section>
         </main>
         
-        <!-- ======================================================= -->
-        <!--     NOVAS SEÇÕES PARA OS DADOS VINDOS DO BACKEND        -->
-        <!-- ======================================================= -->
-
         <section id="secao-veiculos-destaque" class="painel">
             <h2>Veículos em Destaque</h2>
             <div id="cards-veiculos-destaque" class="destaques-grid">
-                <!-- Conteúdo será inserido via JavaScript -->
                 <p class="placeholder-text">Carregando destaques...</p>
             </div>
         </section>
@@ -165,22 +160,18 @@
         <section id="secao-servicos" class="painel">
             <h2>Nossos Serviços</h2>
             <ul id="lista-servicos-oferecidos">
-                <!-- Conteúdo será inserido via JavaScript -->
                 <li class="placeholder-text">Carregando serviços...</li>
             </ul>
         </section>
         
-        <!-- ======================================================= -->
-
         <footer class="main-footer-credits">
             <p>Garagem Inteligente v4.3 - Desenvolvido com HTML, CSS e JavaScript</p>
         </footer>
 
-    </div> <!-- Fim do .app-wrapper -->
+    </div>
 
     <div id="notificacoes" class="notificacoes-container"></div>
 
-    <!-- Áudios -->
     <audio id="somLigar" src="audio/motor-v8-plymouth-barracuda-encendido-acelerada-marcha-243224.mp3" preload="auto"></audio>
     <audio id="somDesligar" src="audio/tuning-whoosh-108007.mp3" preload="auto"></audio>
     <audio id="somAcelerar" src="audio/acceleration-1-6916.mp3" preload="auto"></audio>
@@ -188,11 +179,10 @@
     <audio id="somBuzina" src="audio/busina.mp3" preload="auto"></audio>
     <audio id="somErro" src="audio/erro.mp3" preload="auto"></audio>
 
+    <script src="manutencao.js"></script>
+    <script src="carro.js"></script>
+    <script src="caminhao.js"></script>
+    <script src="carroesportivo.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
-
-
-
-
-<!--    ...RI...    mongodb+srv://Maria:10062009gi@cluster0.qdyir3n.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0-->

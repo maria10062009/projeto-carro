@@ -1,3 +1,5 @@
+// manutencao.js - VERSÃO FINAL COMPLETA
+
 class Manutencao {
     data; tipo; custo; descricao; _tipoClasse = 'Manutencao';
     constructor(dataInput, tipoInput, custoInput, descricaoInput = '') {
@@ -22,8 +24,10 @@ class Manutencao {
     }
     isAgendamentoFuturo() {
         try {
-            const hojeInicioDiaUTC = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate()));
-            const dataManutencaoUTC = new Date(this.data + 'T00:00:00Z'); return dataManutencaoUTC > hojeInicioDiaUTC;
+            const hoje = new Date();
+            const hojeInicioDiaUTC = new Date(Date.UTC(hoje.getUTCFullYear(), hoje.getUTCMonth(), hoje.getUTCDate()));
+            const dataManutencaoUTC = new Date(this.data + 'T00:00:00Z'); 
+            return dataManutencaoUTC >= hojeInicioDiaUTC;
         } catch (e) { console.error("ERRO ao verificar agendamento futuro:", this, e); return false; }
     }
 }
