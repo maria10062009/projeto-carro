@@ -1,149 +1,52 @@
-// server.js
+// server.js - VERSÃO FINAL REVISADA E REATORADA
 
-// Importações
-import express from 'express';
-import dotenv from 'dotenv';
-import axios from 'axios';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
-import path from 'path';
+// 1. Importações de Módulos
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+require('dotenv').config();
 
-// Configuração para obter o __dirname em módulos ES
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Importa o arquivo de rotas centralizado
+const apiRoutes = require('./routes/apiRoutes');
 
-// Carrega variáveis de ambiente do arquivo .env
-dotenv.config();
-
-// Carrega os dados do nosso arquivo JSON
-let dados = {};
-try {
-    const rawData = fs.readFileSync(path.join(__dirname, 'dados.json'));
-    dados = JSON.parse(rawData);
-    console.log('[Servidor] Arquivo dados.json carregado com sucesso.');
-} catch (error) {
-    console.error('[Servidor ERRO] Não foi possível ler ou parsear o arquivo dados.json:', error);
-}
-
-// Inicializa o aplicativo Express
+// 2. Configuração do App Express
 const app = express();
-const port = process.env.PORT || 3001;
-const apiKey = process.env.OPENWEATHER_API_KEY;
+const PORT = process.env.PORT || 3001;
 
-// Middleware para permitir CORS
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-    next();
-});
+// 3. Middlewares
+app.use(cors()); // Habilita Cross-Origin Resource Sharing
+app.use(express.json()); // Habilita o parser de JSON para o corpo das requisições
+app.use(express.static('public')); // Serve arquivos estáticos da pasta 'public' (seu front-end)
 
-// =========================================================
-// ----- ENDPOINTS DA API DE CLIMA (Proxy) - COMPLETOS -----
-// =========================================================
+// 4. Montagem das Rotas da API
+// Todas as rotas definidas em apiRoutes serão prefixadas com /api
+app.use('/api', apiRoutes);
 
-// Função auxiliar para lidar com erros da API
-const handleApiError = (error, res, location) => {
-    console.error(`[Servidor ERRO] Falha ao buscar dados para ${location}:`, error.message);
-    const status = error.response ? error.response.status : 500;
-    const message = status === 404 ? `Localização não encontrada: ${location}` : "Erro ao contatar a API de clima.";
-    res.status(status).json({ error: message });
+// 5. Conexão com o Banco de Dados
+const connectDB = async () => {
+    try {
+        // Validação da variável de ambiente
+        if (!process.env.MONGO_URI_CRUD) {
+            throw new Error("A variável de ambiente MONGO_URI_CRUD não está definida.");
+        }
+        await mongoose.connect(process.env.MONGO_URI_CRUD);
+        console.log('Conexão com o MongoDB Atlas estabelecida com sucesso!');
+    } catch (error) {
+        console.error('Erro ao conectar com o MongoDB Atlas:', error.message);
+        // Encerra a aplicação se a conexão com o banco falhar
+        process.exit(1);
+    }
 };
 
-// Endpoint unificado para obter o tempo atual (por cidade ou coordenadas)
-app.get('/api/tempoatual', async (req, res) => {
-    const { cidade, lat, lon } = req.query;
-    let url;
-    let locationIdentifier;
+// 6. Inicialização do Servidor
+const startServer = async () => {
+    await connectDB(); // Garante que o banco de dados está conectado antes de iniciar o servidor
+    app.listen(PORT, () => {
+        console.log(`🚀 Servidor rodando na porta ${PORT}`);
+        console.log(`💻 Front-end disponível em http://localhost:${PORT}`);
+        console.log(`🔌 API disponível em http://localhost:${PORT}/api`);
+    });
+};
 
-    if (cidade) {
-        locationIdentifier = cidade;
-        url = `https://api.openweathermap.org/data/2.5/weather?q=${cidade}&appid=${apiKey}&units=metric&lang=pt_br`;
-    } else if (lat && lon) {
-        locationIdentifier = `lat=${lat}, lon=${lon}`;
-        url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=pt_br`;
-    } else {
-        return res.status(400).json({ error: "Parâmetros 'cidade' ou 'lat/lon' são necessários." });
-    }
-
-    try {
-        console.log(`[Servidor] Buscando tempo atual para: ${locationIdentifier}`);
-        const response = await axios.get(url);
-        res.json(response.data);
-    } catch (error) {
-        handleApiError(error, res, locationIdentifier);
-    }
-});
-
-// Endpoint unificado para obter a previsão de 5 dias (por cidade ou coordenadas)
-app.get('/api/previsao', async (req, res) => {
-    const { cidade, lat, lon } = req.query;
-    let url;
-    let locationIdentifier;
-
-    if (cidade) {
-        locationIdentifier = cidade;
-        url = `https://api.openweathermap.org/data/2.5/forecast?q=${cidade}&appid=${apiKey}&units=metric&lang=pt_br`;
-    } else {
-        return res.status(400).json({ error: "Parâmetros 'cidade' ou 'lat/lon' são necessários." });
-    }
-
-    try {
-        console.log(`[Servidor] Buscando previsão para: ${locationIdentifier}`);
-        const response = await axios.get(url);
-        res.json(response.data);
-    } catch (error) {
-        handleApiError(error, res, locationIdentifier);
-    }
-});
-
-// =======================================================
-// ----- ENDPOINTS DA GARAGEM INTELIGENTE - COMPLETOS -----
-// =======================================================
-
-// Endpoint para dicas de manutenção gerais
-app.get('/api/dicas-manutencao', (req, res) => {
-    console.log('[Servidor] Requisição recebida para /api/dicas-manutencao');
-    if (dados.dicasManutencao && dados.dicasManutencao.geral) {
-        res.json(dados.dicasManutencao.geral);
-    } else {
-        res.status(500).json({ error: "Dados de dicas gerais não encontrados no servidor." });
-    }
-});
-
-// Endpoint para dicas de manutenção por tipo de veículo (com lógica melhorada)
-app.get('/api/dicas-manutencao/:tipoVeiculo', (req, res) => {
-    const { tipoVeiculo } = req.params;
-    console.log(`[Servidor] Requisição recebida para /api/dicas-manutencao/${tipoVeiculo}`);
-    
-    // Mapeamento explícito e robusto dos tipos de veículo
-    const mapeamentoTipos = {
-        'carro': 'carro',
-        'carroesportivo': 'esportivo',
-        'caminhao': 'caminhao'
-    };
-
-    const chaveJson = mapeamentoTipos[tipoVeiculo.toLowerCase()];
-    const dicas = dados.dicasManutencao && chaveJson ? dados.dicasManutencao[chaveJson] : null;
-
-    if (dicas) {
-        res.json(dicas);
-    } else {
-        res.status(404).json({ error: `Nenhuma dica de manutenção encontrada para o tipo: ${tipoVeiculo}` });
-    }
-});
-
-// Endpoint para viagens populares
-app.get('/api/viagens-populares', (req, res) => {
-    console.log('[Servidor] Requisição recebida para /api/viagens-populares');
-    if (dados.viagensPopulares) {
-        res.json(dados.viagensPopulares);
-    } else {
-        res.status(500).json({ error: "Dados de viagens populares não encontrados no servidor." });
-    }
-});
-
-// Inicia o servidor
-app.listen(port, () => {
-    console.log(`[Servidor] Rodando e escutando em http://localhost:${port}`);
-    
-});
+// Inicia a aplicação
+startServer();
