@@ -1,4 +1,4 @@
-// script.js - VERSÃO FINAL COMPLETA
+// script.js - VERSÃO COM CRUD COMPLETO
 
 (function () {
     'use strict';
@@ -7,7 +7,7 @@
     // CONSTANTES E CONFIGURAÇÕES GLOBAIS
     // ==========================================================================
     const API_BASE_URL = 'http://localhost:3001';
-    const GARAGEM_API_URL = `${API_BASE_URL}/api/garagem`;
+    const GARAGEM_API_URL_BASE = `${API_BASE_URL}/api/garagem`;
     const DESTAQUES_API_URL = `${API_BASE_URL}/api/garagem/veiculos-destaque`;
     const SERVICOS_API_URL = `${API_BASE_URL}/api/garagem/servicos-oferecidos`;
     const WEATHER_API_URL = `${API_BASE_URL}/api/weather`;
@@ -23,6 +23,18 @@
     const notificacoesDiv = document.getElementById('notificacoes');
     const tipoVeiculoSelect = document.getElementById('tipoVeiculo');
     const campoCapacidadeCarga = document.getElementById('campoCapacidadeCarga');
+
+    const editModal = {
+        backdrop: document.getElementById('editModal'),
+        form: document.getElementById('formEditarVeiculo'),
+        closeBtn: document.getElementById('closeEditModalBtn'),
+        idInput: document.getElementById('editVeiculoId'),
+        modeloInput: document.getElementById('editModeloVeiculo'),
+        corInput: document.getElementById('editCorVeiculo'),
+        campoCarga: document.getElementById('editCampoCapacidadeCarga'),
+        capacidadeInput: document.getElementById('editCapacidadeCarga'),
+    };
+
     const veiculoSelecionadoElements = {
         titulo: document.getElementById('tituloVeiculo'),
         divInformacoes: document.getElementById('informacoesVeiculo'),
@@ -33,6 +45,7 @@
         controlesCaminhao: { container: document.getElementById('controlesCaminhao'), cargaInput: document.getElementById('cargaInput'), carregar: document.getElementById('btnCarregar'), descarregar: document.getElementById('btnDescarregar'), },
         manutencao: { form: document.getElementById('formManutencao'), dataInput: document.getElementById('dataManutencao'), tipoInput: document.getElementById('tipoManutencao'), custoInput: document.getElementById('custoManutencao'), descInput: document.getElementById('descManutencao'), submitBtn: document.querySelector('#formManutencao button'), historicoUl: document.getElementById('historicoLista'), agendamentosUl: document.getElementById('agendamentosLista'), }
     };
+
     const weatherElements = {
         container: document.getElementById('weather-forecast-container'),
         cityInput: document.getElementById('cityInput'),
@@ -44,6 +57,7 @@
         filterControls: document.querySelector('.weather-forecast-filter-controls'),
         highlightControls: { rain: document.getElementById('chkHighlightRain'), cold: document.getElementById('chkHighlightCold'), hot: document.getElementById('chkHighlightHot'), }
     };
+
     const cardsVeiculosDestaqueEl = document.getElementById('cards-veiculos-destaque');
     const listaServicosOferecidosEl = document.getElementById('lista-servicos-oferecidos');
     const audioElements = {
@@ -63,23 +77,24 @@
     async function carregarGaragem() {
         try {
             listaVeiculosDiv.innerHTML = '<p class="placeholder-text">Carregando veículos do banco de dados...</p>';
-            const response = await fetch(GARAGEM_API_URL);
+            const response = await fetch(GARAGEM_API_URL_BASE);
             if (!response.ok) throw new Error(`Falha ao buscar dados do servidor (${response.status})`);
             const garagemSalva = await response.json();
 
             return garagemSalva.map(data => {
                 try {
+                    // O backend já envia 'id', então usamos data.id
                     switch (data._tipoClasse) {
                         case 'CarroEsportivo':
-                            return new CarroEsportivo(data.modelo, data.cor, data.velocidadeMaxima, data._id, data.historicoManutencao, data.ligado, data.velocidade, data.turboAtivado);
+                            return new CarroEsportivo(data.modelo, data.cor, data.velocidadeMaxima, data.id, data.historicoManutencao, data.ligado, data.velocidade, data.turboAtivado);
                         case 'Caminhao':
-                            return new Caminhao(data.modelo, data.cor, data.capacidadeCarga, data.velocidadeMaxima, data._id, data.historicoManutencao, data.ligado, data.velocidade, data.cargaAtual);
+                            return new Caminhao(data.modelo, data.cor, data.capacidadeCarga, data.velocidadeMaxima, data.id, data.historicoManutencao, data.ligado, data.velocidade, data.cargaAtual);
                         case 'Carro':
                         default:
-                            return new Carro(data.modelo, data.cor, data.velocidadeMaxima, data._id, data.historicoManutencao, data.ligado, data.velocidade);
+                            return new Carro(data.modelo, data.cor, data.velocidadeMaxima, data.id, data.historicoManutencao, data.ligado, data.velocidade);
                     }
                 } catch (error) {
-                    console.error(`ERRO ao reidratar veículo (ID: ${data?._id}): ${error.message}`, data);
+                    console.error(`ERRO ao reidratar veículo (ID: ${data?.id}): ${error.message}`, data);
                     return null;
                 }
             }).filter(Boolean);
@@ -95,7 +110,7 @@
     async function atualizarVeiculoNoServidor(veiculo) {
         const { id, ...dadosParaAtualizar } = veiculo;
         try {
-            const response = await fetch(`${GARAGEM_API_URL}/${id}`, {
+            const response = await fetch(`${GARAGEM_API_URL_BASE}/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(dadosParaAtualizar),
@@ -109,18 +124,59 @@
     }
 
     // ==========================================================================
-    // FUNÇÕES DE UI (GERAIS)
+    // FUNÇÕES DE UI (GERAIS E MODAL)
     // ==========================================================================
+    function abrirModalEdicao(id) {
+        const veiculo = garagem.find(v => v.id === id);
+        if (!veiculo) return;
+
+        editModal.idInput.value = veiculo.id;
+        editModal.modeloInput.value = veiculo.modelo;
+        editModal.corInput.value = veiculo.cor;
+
+        const ehCaminhao = veiculo instanceof Caminhao;
+        editModal.campoCarga.classList.toggle('hidden', !ehCaminhao);
+        if (ehCaminhao) {
+            editModal.capacidadeInput.value = veiculo.capacidadeCarga;
+        }
+        editModal.backdrop.classList.remove('hidden');
+    }
+
+    function fecharModalEdicao() {
+        editModal.backdrop.classList.add('hidden');
+    }
+    
     function atualizarListaVeiculosUI() {
         listaVeiculosDiv.innerHTML = '';
-        if (garagem.length === 0) { listaVeiculosDiv.innerHTML = '<p class="placeholder-text">Sua garagem está vazia.</p>'; return; }
+        if (garagem.length === 0) {
+            listaVeiculosDiv.innerHTML = '<p class="placeholder-text">Sua garagem está vazia.</p>';
+            return;
+        }
+
         garagem.sort((a, b) => a.modelo.localeCompare(b.modelo)).forEach(veiculo => {
-            const btn = document.createElement('button');
-            btn.innerHTML = `<span class="color-swatch-list" style="background-color: ${veiculo.cor};"></span> ${veiculo.modelo}`;
-            btn.dataset.veiculoId = veiculo.id;
-            btn.classList.toggle('selecionado', veiculo.id === veiculoSelecionadoId);
-            btn.addEventListener('click', () => selecionarVeiculo(veiculo.id));
-            listaVeiculosDiv.appendChild(btn);
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'veiculo-item';
+            itemDiv.dataset.id = veiculo.id;
+
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'veiculo-item-info';
+            infoDiv.innerHTML = `<span class="color-swatch-list" style="background-color: ${veiculo.cor};"></span> ${veiculo.modelo}`;
+            infoDiv.classList.toggle('selecionado', veiculo.id === veiculoSelecionadoId);
+            
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'veiculo-actions';
+            
+            const editBtn = document.createElement('button');
+            editBtn.textContent = 'Editar';
+            editBtn.className = 'botao-secundario action-edit';
+            
+            const deleteBtn = document.createElement('button');
+            deleteBtn.textContent = 'Excluir';
+            deleteBtn.className = 'botao-perigo action-delete';
+            
+            actionsDiv.append(editBtn, deleteBtn);
+            itemDiv.append(infoDiv, actionsDiv);
+            listaVeiculosDiv.appendChild(itemDiv);
         });
     }
 
@@ -213,12 +269,12 @@
         weatherElements.currentDisplay.innerHTML = `<img src="${iconUrl}" alt="${description}" title="${description}"><div><p class="temp">${currentData.main.temp.toFixed(0)}°C</p><p class="desc">${description}</p><p class="details">Sensação: ${currentData.main.feels_like.toFixed(0)}°C | Umidade: ${currentData.main.humidity}%</p></div>`;
     }
 
-    function displayForecast(forecastItems) {
+    function displayForecast(forecastDays) {
         const els = weatherElements;
         els.forecastDisplay.innerHTML = '';
-        if (!forecastItems || forecastItems.length === 0) { els.forecastDisplay.innerHTML = '<p class="placeholder-text">Previsão não disponível.</p>'; return; }
+        if (!fullForecastData || fullForecastData.length === 0) { els.forecastDisplay.innerHTML = '<p class="placeholder-text">Previsão não disponível.</p>'; return; }
         const dailyForecasts = fullForecastData.filter(item => item.dt_txt.includes("12:00:00"));
-        const filteredList = dailyForecasts.slice(0, forecastItems);
+        const filteredList = dailyForecasts.slice(0, forecastDays);
         filteredList.forEach(item => {
             const date = new Date(item.dt * 1000);
             const day = date.toLocaleDateString('pt-BR', { weekday: 'short' });
@@ -311,25 +367,36 @@
             const cor = document.getElementById('corVeiculo').value;
             const capacidade = document.getElementById('capacidadeCarga').value;
             try {
-                let novoVeiculo;
-                switch (tipo) {
-                    case 'CarroEsportivo': novoVeiculo = new CarroEsportivo(modelo, cor); break;
-                    case 'Caminhao': novoVeiculo = new Caminhao(modelo, cor, capacidade); break;
-                    default: novoVeiculo = new Carro(modelo, cor); break;
+                // Prepara o corpo da requisição
+                const requestBody = {
+                    modelo: modelo,
+                    cor: cor,
+                    _tipoClasse: tipo,
+                    // Garante um valor padrão para imagem caso o backend não o faça
+                    imagem: 'imagens/carro_padrao.webp' 
+                };
+                if (tipo === 'Caminhao') {
+                    requestBody.capacidadeCarga = parseInt(capacidade, 10);
                 }
-                const response = await fetch(GARAGEM_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...novoVeiculo, id: undefined }), });
-                if (!response.ok) { const errData = await response.json(); throw new Error(errData.details || 'Falha ao adicionar veículo no servidor.'); }
+
+                const response = await fetch(GARAGEM_API_URL_BASE, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody) });
+                
+                if (!response.ok) { 
+                    const errData = await response.json(); 
+                    throw new Error(errData.details || 'Falha ao adicionar veículo no servidor.'); 
+                }
                 const veiculoSalvo = await response.json();
                 
+                // Reidratação da instância da classe no frontend
                 let veiculoReidratado;
                 switch (veiculoSalvo._tipoClasse) {
-                    case 'CarroEsportivo': veiculoReidratado = new CarroEsportivo(veiculoSalvo.modelo, veiculoSalvo.cor, veiculoSalvo.velocidadeMaxima, veiculoSalvo._id, veiculoSalvo.historicoManutencao, veiculoSalvo.ligado, veiculoSalvo.velocidade, veiculoSalvo.turboAtivado); break;
-                    case 'Caminhao': veiculoReidratado = new Caminhao(veiculoSalvo.modelo, veiculoSalvo.cor, veiculoSalvo.capacidadeCarga, veiculoSalvo.velocidadeMaxima, veiculoSalvo._id, veiculoSalvo.historicoManutencao, veiculoSalvo.ligado, veiculoSalvo.velocidade, veiculoSalvo.cargaAtual); break;
-                    default: veiculoReidratado = new Carro(veiculoSalvo.modelo, veiculoSalvo.cor, veiculoSalvo.velocidadeMaxima, veiculoSalvo._id, veiculoSalvo.historicoManutencao, veiculoSalvo.ligado, veiculoSalvo.velocidade); break;
+                    case 'CarroEsportivo': veiculoReidratado = new CarroEsportivo(veiculoSalvo.modelo, veiculoSalvo.cor, veiculoSalvo.velocidadeMaxima, veiculoSalvo.id, veiculoSalvo.historicoManutencao, veiculoSalvo.ligado, veiculoSalvo.velocidade, veiculoSalvo.turboAtivado); break;
+                    case 'Caminhao': veiculoReidratado = new Caminhao(veiculoSalvo.modelo, veiculoSalvo.cor, veiculoSalvo.capacidadeCarga, veiculoSalvo.velocidadeMaxima, veiculoSalvo.id, veiculoSalvo.historicoManutencao, veiculoSalvo.ligado, veiculoSalvo.velocidade, veiculoSalvo.cargaAtual); break;
+                    default: veiculoReidratado = new Carro(veiculoSalvo.modelo, veiculoSalvo.cor, veiculoSalvo.velocidadeMaxima, veiculoSalvo.id, veiculoSalvo.historicoManutencao, veiculoSalvo.ligado, veiculoSalvo.velocidade); break;
                 }
                 garagem.push(veiculoReidratado);
                 atualizarListaVeiculosUI();
-                adicionarNotificacao(`${novoVeiculo.modelo} adicionado!`, 'sucesso');
+                adicionarNotificacao(`${veiculoReidratado.modelo} adicionado!`, 'sucesso');
                 formAdicionarVeiculo.reset();
                 campoCapacidadeCarga.classList.add('hidden');
                 selecionarVeiculo(veiculoReidratado.id);
@@ -337,19 +404,84 @@
         });
 
         tipoVeiculoSelect.addEventListener('change', () => { campoCapacidadeCarga.classList.toggle('hidden', tipoVeiculoSelect.value !== 'Caminhao'); });
-        
-        veiculoSelecionadoElements.btnRemover.addEventListener('click', async () => {
-            const veiculo = garagem.find(v => v.id === veiculoSelecionadoId);
-            if (!veiculo || !confirm(`Tem certeza que deseja remover ${veiculo.modelo}?`)) return;
+
+        listaVeiculosDiv.addEventListener('click', async (e) => {
+            const target = e.target;
+            const veiculoItem = target.closest('.veiculo-item');
+            if (!veiculoItem) return;
+
+            const id = veiculoItem.dataset.id;
+            if (target.matches('.action-delete')) {
+                const veiculo = garagem.find(v => v.id === id);
+                if (!veiculo || !confirm(`Tem certeza que deseja excluir o ${veiculo.modelo}?`)) return;
+                try {
+                    const response = await fetch(`${GARAGEM_API_URL_BASE}/${id}`, { method: 'DELETE' });
+                    if (!response.ok) throw new Error('Falha ao remover o veículo no servidor.');
+                    
+                    garagem = garagem.filter(v => v.id !== id);
+                    if (veiculoSelecionadoId === id) veiculoSelecionadoId = null;
+                    
+                    adicionarNotificacao(`${veiculo.modelo} removido.`, 'info');
+                    atualizarListaVeiculosUI();
+                    atualizarDisplayVeiculo();
+                } catch (error) {
+                    adicionarNotificacao(`Erro: ${error.message}`, 'erro');
+                }
+            } else if (target.matches('.action-edit')) {
+                abrirModalEdicao(id);
+            } else if (target.closest('.veiculo-item-info')) {
+                selecionarVeiculo(id);
+            }
+        });
+
+        editModal.form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = editModal.idInput.value;
+            const veiculo = garagem.find(v => v.id === id);
+            if (!veiculo) return;
+
+            const dadosAtualizados = {
+                modelo: editModal.modeloInput.value.trim(),
+                cor: editModal.corInput.value,
+            };
+            if (veiculo instanceof Caminhao) {
+                dadosAtualizados.capacidadeCarga = parseInt(editModal.capacidadeInput.value, 10);
+            }
+
             try {
-                const response = await fetch(`${GARAGEM_API_URL}/${veiculo.id}`, { method: 'DELETE' });
-                if (!response.ok) throw new Error('Falha ao remover o veículo no servidor.');
-                garagem = garagem.filter(v => v.id !== veiculoSelecionadoId);
-                veiculoSelecionadoId = null;
-                adicionarNotificacao(`${veiculo.modelo} removido.`, 'info');
+                const response = await fetch(`${GARAGEM_API_URL_BASE}/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dadosAtualizados)
+                });
+                if (!response.ok) throw new Error("Falha ao atualizar o veículo.");
+                
+                const veiculoRetornado = await response.json();
+                const index = garagem.findIndex(v => v.id === id);
+                if (index !== -1) {
+                    // Atualiza os dados da instância local, preservando a classe
+                    Object.assign(garagem[index], veiculoRetornado);
+                }
+                
+                adicionarNotificacao(`${veiculo.modelo} atualizado!`, 'sucesso');
+                fecharModalEdicao();
                 atualizarListaVeiculosUI();
-                atualizarDisplayVeiculo();
-            } catch (error) { adicionarNotificacao(`Erro: ${error.message}`, 'erro'); }
+                if (veiculoSelecionadoId === id) {
+                    atualizarDisplayVeiculo();
+                }
+            } catch(error) {
+                adicionarNotificacao(`Erro: ${error.message}`, 'erro');
+            }
+        });
+
+        editModal.closeBtn.addEventListener('click', fecharModalEdicao);
+        editModal.backdrop.addEventListener('click', (e) => {
+            if (e.target === editModal.backdrop) fecharModalEdicao();
+        });
+
+        veiculoSelecionadoElements.btnRemover.addEventListener('click', () => {
+            const deleteButton = listaVeiculosDiv.querySelector(`.veiculo-item[data-id="${veiculoSelecionadoId}"] .action-delete`);
+            if (deleteButton) deleteButton.click();
         });
 
         document.getElementById('tab-details').addEventListener('click', (e) => {
@@ -377,19 +509,18 @@
             try {
                 const novaManutencao = new Manutencao(dataInput.value, tipoInput.value, custoInput.value, descInput.value);
                 await veiculo.adicionarManutencao(novaManutencao);
-                adicionarNotificacao('Registro de manutenção adicionado!', 'sucesso');
+                adicionarNotificacao('Manutenção adicionada!', 'sucesso');
                 exibirManutencoesUI(veiculo);
                 atualizarDisplayVeiculo();
                 veiculoSelecionadoElements.manutencao.form.reset();
             } catch (error) { adicionarNotificacao(`Erro: ${error.message}`, 'erro'); }
         });
 
-        weatherElements.fetchBtn.addEventListener('click', () => { const city = weatherElements.cityInput.value.trim(); if (city) fetchAndDisplayWeather({ city }); else adicionarNotificacao('Por favor, digite o nome de uma cidade.', 'aviso'); });
+        weatherElements.fetchBtn.addEventListener('click', () => { const city = weatherElements.cityInput.value.trim(); if (city) fetchAndDisplayWeather({ city }); else adicionarNotificacao('Por favor, digite uma cidade.', 'aviso'); });
         weatherElements.cityInput.addEventListener('keyup', (e) => { if (e.key === 'Enter') weatherElements.fetchBtn.click(); });
         weatherElements.geoBtn.addEventListener('click', () => { if (!navigator.geolocation) { adicionarNotificacao('Geolocalização não é suportada.', 'erro'); return; } navigator.geolocation.getCurrentPosition((position) => { fetchAndDisplayWeather({ lat: position.coords.latitude, lon: position.coords.longitude }); }, () => { adicionarNotificacao('Não foi possível obter sua localização.', 'erro'); }); });
         weatherElements.filterControls.addEventListener('click', (e) => { if (e.target.matches('.filter-btn')) { weatherElements.filterControls.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active')); e.target.classList.add('active'); const days = parseInt(e.target.dataset.days, 10); displayForecast(days); } });
-        const { rain, cold, hot } = weatherElements.highlightControls;
-        [rain, cold, hot].forEach(checkbox => checkbox.addEventListener('change', applyWeatherHighlights));
+        Object.values(weatherElements.highlightControls).forEach(checkbox => checkbox.addEventListener('change', applyWeatherHighlights));
     }
 
     async function inicializarApp() {

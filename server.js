@@ -16,7 +16,10 @@ const PORT = process.env.PORT || 3001;
 // 3. Middlewares
 app.use(cors()); // Habilita Cross-Origin Resource Sharing
 app.use(express.json()); // Habilita o parser de JSON para o corpo das requisições
-app.use(express.static('public')); // Serve arquivos estáticos da pasta 'public' (seu front-end)
+
+// ATENÇÃO: Se seu frontend (index.html, etc) estiver em uma pasta 'public' ou 'frontend'
+// na raiz do projeto do servidor, descomente a linha abaixo.
+// app.use(express.static('public')); 
 
 // 4. Montagem das Rotas da API
 // Todas as rotas definidas em apiRoutes serão prefixadas com /api
@@ -43,7 +46,6 @@ const startServer = async () => {
     await connectDB(); // Garante que o banco de dados está conectado antes de iniciar o servidor
     app.listen(PORT, () => {
         console.log(`🚀 Servidor rodando na porta ${PORT}`);
-        console.log(`💻 Front-end disponível em http://localhost:${PORT}`);
         console.log(`🔌 API disponível em http://localhost:${PORT}/api`);
     });
 };

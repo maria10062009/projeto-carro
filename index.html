@@ -167,7 +167,33 @@
         <footer class="main-footer-credits">
             <p>Garagem Inteligente v4.3 - Desenvolvido com HTML, CSS e JavaScript</p>
         </footer>
+    </div>
 
+    <!-- MODAL DE EDIÇÃO -->
+    <div id="editModal" class="modal-backdrop hidden">
+        <div class="modal-content painel">
+            <button id="closeEditModalBtn" class="modal-close-btn">&times;</button>
+            <h2>Editar Veículo</h2>
+            <form id="formEditarVeiculo">
+                <input type="hidden" id="editVeiculoId">
+                <div class="form-grid">
+                    <div>
+                        <label for="editModeloVeiculo">Modelo:</label>
+                        <input type="text" id="editModeloVeiculo" placeholder="Ex: Fusca, Ferrari F40" required>
+                    </div>
+                    <div>
+                        <label for="editCorVeiculo">Cor:</label>
+                        <input type="color" id="editCorVeiculo" title="Clique para escolher a cor">
+                    </div>
+                    <!-- Campo de carga para caminhões no modal -->
+                    <div id="editCampoCapacidadeCarga" class="hidden">
+                        <label for="editCapacidadeCarga">Capacidade Carga (kg):</label>
+                        <input type="number" id="editCapacidadeCarga" min="100" step="100">
+                    </div>
+                </div>
+                <button type="submit" class="botao-principal">Salvar Alterações</button>
+            </form>
+        </div>
     </div>
 
     <div id="notificacoes" class="notificacoes-container"></div>

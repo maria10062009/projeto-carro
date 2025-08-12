@@ -255,29 +255,39 @@ button:disabled, .botao-principal:disabled, .botao-secundario:disabled, .botao-p
 
 /* --- Seção Minha Garagem --- */
 #listaVeiculosGaragem {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 12px;
-}
-#listaVeiculosGaragem button {
-    background-color: #fff;
-    color: var(--cor-texto-principal);
-    border: 1px solid var(--cor-borda);
-    text-align: left;
-    padding: 10px 12px;
     display: flex;
-    align-items: center;
-    border-radius: var(--raio-borda-pequeno);
+    flex-direction: column;
+    gap: 8px;
 }
-#listaVeiculosGaragem button:hover {
+#listaVeiculosGaragem .veiculo-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-borda-pequeno);
+    background-color: #fff;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+#listaVeiculosGaragem .veiculo-item:hover {
     border-color: var(--cor-destaque-primario);
-    background-color: var(--cor-fundo-secundario);
     box-shadow: var(--sombra-suave);
 }
-#listaVeiculosGaragem button.selecionado {
-    background-color: var(--cor-destaque-primario);
-    color: white;
-    border-color: var(--cor-destaque-primario);
+#listaVeiculosGaragem .veiculo-item-info {
+    flex-grow: 1;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: var(--raio-borda-pequeno);
+    transition: background-color 0.2s ease;
+}
+#listaVeiculosGaragem .veiculo-item-info.selecionado {
+    background-color: var(--cor-fundo-secundario);
+    font-weight: bold;
+}
+#listaVeiculosGaragem .veiculo-actions button {
+    margin-left: 5px;
+    padding: 5px 8px;
+    font-size: 0.8em;
 }
 .color-swatch-list {
     display: inline-block;
@@ -286,6 +296,7 @@ button:disabled, .botao-principal:disabled, .botao-secundario:disabled, .botao-p
     border-radius: var(--raio-borda-pequeno);
     margin-right: 8px;
     border: 1px solid rgba(0,0,0,0.05);
+    vertical-align: middle;
 }
 
 /* --- Seção de Detalhes do Veículo --- */
@@ -678,6 +689,58 @@ input[type="range"]::-moz-range-thumb {
     border-top: 1px solid var(--cor-borda);
     width: 100%;
 }
+
+/* --- Estilos para o Modal de Edição --- */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 2000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none; /* Ignora cliques quando escondido */
+}
+
+.modal-backdrop:not(.hidden) {
+    opacity: 1;
+    pointer-events: auto; /* Permite cliques quando visível */
+}
+
+.modal-content {
+    width: 90%;
+    max-width: 500px;
+    position: relative;
+    transform: scale(0.95);
+    transition: transform 0.3s ease;
+}
+
+.modal-backdrop:not(.hidden) .modal-content {
+    transform: scale(1);
+}
+
+.modal-close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 2em;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--cor-texto-secundario);
+    box-shadow: none;
+}
+
+.modal-close-btn:hover {
+    color: var(--cor-texto-principal);
+}
+
 
 /* --- Responsividade --- */
 @media (max-width: 768px) {
