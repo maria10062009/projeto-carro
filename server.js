@@ -1,54 +1,30 @@
-// server.js - VERSÃO FINAL REVISADA E REATORADA
+// server.js - VERSÃO FINAL SIMULADA (SEM BANCO DE DADOS)
 
-// 1. Importações de Módulos
+// 1. Importações
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
-require('dotenv').config();
 
-// Importa o arquivo de rotas centralizado
+// Importa o nosso arquivo de rotas que já está arrumado (sem MongoDB)
 const apiRoutes = require('./routes/apiRoutes');
 
 // 2. Configuração do App Express
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = 3001; // A porta que o servidor vai usar
 
 // 3. Middlewares
-app.use(cors()); // Habilita Cross-Origin Resource Sharing
-app.use(express.json()); // Habilita o parser de JSON para o corpo das requisições
-
-// ATENÇÃO: Se seu frontend (index.html, etc) estiver em uma pasta 'public' ou 'frontend'
-// na raiz do projeto do servidor, descomente a linha abaixo.
-// app.use(express.static('public')); 
+app.use(cors()); // Habilita que o frontend acesse o backend
+app.use(express.json()); // Permite que o servidor entenda JSON
 
 // 4. Montagem das Rotas da API
-// Todas as rotas definidas em apiRoutes serão prefixadas com /api
+// Diz ao servidor para usar as rotas do arquivo apiRoutes.js
+// para qualquer endereço que comece com /api
 app.use('/api', apiRoutes);
 
-// 5. Conexão com o Banco de Dados
-const connectDB = async () => {
-    try {
-        // Validação da variável de ambiente
-        if (!process.env.MONGO_URI_CRUD) {
-            throw new Error("A variável de ambiente MONGO_URI_CRUD não está definida.");
-        }
-        await mongoose.connect(process.env.MONGO_URI_CRUD);
-        console.log('Conexão com o MongoDB Atlas estabelecida com sucesso!');
-    } catch (error) {
-        console.error('Erro ao conectar com o MongoDB Atlas:', error.message);
-        // Encerra a aplicação se a conexão com o banco falhar
-        process.exit(1);
-    }
-};
 
-// 6. Inicialização do Servidor
-const startServer = async () => {
-    await connectDB(); // Garante que o banco de dados está conectado antes de iniciar o servidor
-    app.listen(PORT, () => {
-        console.log(`🚀 Servidor rodando na porta ${PORT}`);
-        console.log(`🔌 API disponível em http://localhost:${PORT}/api`);
-    });
-};
-
-// Inicia a aplicação
-startServer();
+// 5. Inicialização do Servidor
+app.listen(PORT, () => {
+    // ESTA É A MENSAGEM QUE PRECISAMOS VER!
+    console.log(`✅ Servidor da Garagem Inteligente rodando com sucesso em http://localhost:${PORT}`);
+    console.log(`   A garagem está funcionando em modo de simulação (sem banco de dados).`);
+    console.log(`   Qualquer veículo adicionado será perdido ao reiniciar o servidor.`);
+});

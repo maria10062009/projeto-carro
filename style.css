@@ -1,0 +1,26 @@
+
+
+#carro-container {
+    width: 300px;
+    margin: 20px auto; /* Centraliza o container */
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: center;
+}
+
+#carro-imagem {
+    width: 100px;
+    height: auto;
+    margin-bottom: 10px;
+}
+
+#botoes {
+    margin-top: 10px;
+}
+
+button {
+    
+    padding: 5px 10px;
+    margin: 0 5px;
+    cursor: pointer;
+}
