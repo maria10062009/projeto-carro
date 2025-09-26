@@ -1,30 +1,43 @@
-// server.js - VERSÃO FINAL SIMULADA (SEM BANCO DE DADOS)
-
 // 1. Importações
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const mongoose = require('mongoose');
 
-// Importa o nosso arquivo de rotas que já está arrumado (sem MongoDB)
-const apiRoutes = require('./routes/apiRoutes');
+// Importa nossas rotas e o middleware de autenticação
+const authRoutes = require('./routes/authRoutes');
+const garagemRoutes = require('./routes/garagemRoutes');
+const publicRoutes = require('./routes/publicRoutes');
+const authMiddleware = require('./middleware/authMiddleware');
 
 // 2. Configuração do App Express
 const app = express();
-const PORT = 3001; // A porta que o servidor vai usar
+const PORT = process.env.PORT || 3001;
 
-// 3. Middlewares
-app.use(cors()); // Habilita que o frontend acesse o backend
-app.use(express.json()); // Permite que o servidor entenda JSON
+// 3. Middlewares Globais
+app.use(cors());       // Habilita que o frontend (de qualquer origem) acesse o backend
+app.use(express.json()); // Permite que o servidor entenda JSON no corpo das requisições
 
 // 4. Montagem das Rotas da API
-// Diz ao servidor para usar as rotas do arquivo apiRoutes.js
-// para qualquer endereço que comece com /api
-app.use('/api', apiRoutes);
+// Rotas públicas (não precisam de login/token)
+app.use('/api', publicRoutes); // Usará /api/weather, /api/veiculos-destaque, etc.
 
+// Rotas de autenticação (não precisam de login/token)
+app.use('/api/auth', authRoutes);
 
-// 5. Inicialização do Servidor
-app.listen(PORT, () => {
-    // ESTA É A MENSAGEM QUE PRECISAMOS VER!
-    console.log(`✅ Servidor da Garagem Inteligente rodando com sucesso em http://localhost:${PORT}`);
-    console.log(`   A garagem está funcionando em modo de simulação (sem banco de dados).`);
-    console.log(`   Qualquer veículo adicionado será perdido ao reiniciar o servidor.`);
-});
+// Rotas da garagem (PRECISAM de login/token)
+// O middleware `authMiddleware` será executado ANTES de qualquer rota em `garagemRoutes`.
+app.use('/api/garagem', authMiddleware, garagemRoutes);
+
+// 5. Conexão com o Banco de Dados e Inicialização do Servidor
+mongoose.connect(process.env.MONGO_URI_CRUD)
+    .then(() => {
+        console.log("✅ Conexão com o MongoDB estabelecida com sucesso.");
+        app.listen(PORT, () => {
+            console.log(`🚀 Servidor da Garagem Inteligente rodando em http://localhost:${PORT}`);
+        });
+    })
+    .catch(err => {
+        console.error("❌ Erro fatal ao conectar ao MongoDB:", err.message);
+        process.exit(1); // Encerra a aplicação se não conseguir conectar ao DB
+    });

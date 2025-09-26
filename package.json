@@ -1,22 +1,27 @@
 {
-  "name": "projeto-carro-main",
-  "version": "1.0.0",
-  "description": "Projeto de garagem inteligente com Express e MongoDB",
+  "name": "garagem-inteligente",
+  "version": "4.1.0",
+  "description": "Aplicação Garagem Inteligente com frontend e backend proxy para API de clima.",
   "main": "server.js",
+  "type": "module",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "node --watch server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "keywords": [
+    "garagem",
+    "inteligente",
+    "frontend",
+    "backend",
+    "nodejs",
+    "express"
+  ],
+  "author": "Seu Nome",
+  "license": "ISC",
   "dependencies": {
-    "app": "^0.1.0",
-    "axios": "^1.11.0",
-    "cors": "^2.8.5",
-    "dotenv": "^16.6.1",
-    "express": "^5.1.0",
-    "mongoose": "^8.17.0",
-    "port": "^0.8.1"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.10"
+    "axios": "^1.6.8",  
+    "dotenv": "^16.4.5", 
+    "express": "^4.19.2" 
   }
 }
