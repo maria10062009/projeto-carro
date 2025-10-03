@@ -1,81 +1,438 @@
+/**
+ * estilo.css - Folha de Estilos para Garagem Inteligente v4.3
+ */
+
+/* --- Variáveis de Cores CSS (Tema Pastel Aconchegante) --- */
+:root {
+    --cor-fundo-principal: #fdf6f0;
+    --cor-fundo-secundario: #f8eadd;
+    --cor-fundo-painel: #ffffff;
+    --cor-texto-principal: #5d544f;
+    --cor-texto-secundario: #8c7e76;
+    --cor-destaque-primario: #f5a9bc;
+    --cor-destaque-secundario: #a2d2ff;
+    --cor-sucesso: #b0e0e6;
+    --cor-aviso: #ffe084;
+    --cor-erro: #ffb3ba;
+    --cor-borda: #e0d8d0;
+    --sombra-suave: 0 3px 8px rgba(93, 84, 79, 0.1);
+    --sombra-media: 0 5px 15px rgba(93, 84, 79, 0.12);
+    --raio-borda: 10px;
+    --raio-borda-pequeno: 6px;
+}
+
+/* --- Estilos Globais e Reset Básico --- */
+* {
+    box-sizing: border-box;
+}
+
 body {
-    font-family: 'Arial', sans-serif; /* Fonte padrão */
-    background-color: #f4f4f4; /* Cor de fundo suave */
-    margin: 0; /* Remove margens padrão */
-    padding: 0;
-    color: #333; /* Cor do texto principal */
-    line-height: 1.6; /* Espaçamento entre linhas */
-  }
-  
-  h1 {
-    text-align: center; /* Título centralizado */
-    color: #0056b3; /* Cor do título */
-    margin-top: 20px; /* Espaçamento acima do título */
-  }
-  
-  h2 {
-    color: #007bff; /* Cor dos subtítulos */
-    margin-top: 30px; /* Espaçamento acima dos subtítulos */
-    border-bottom: 2px solid #007bff; /* Linha abaixo do subtítulo */
-    padding-bottom: 5px;
-  }
-  
-  /* Estilos para as Divs dos Carros */
-  div {
-    margin-bottom: 30px; /* Espaçamento abaixo das divs */
+    font-family: 'Nunito Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.65;
+    margin: 0;
+    background-color: var(--cor-fundo-principal);
+    color: var(--cor-texto-principal);
+}
+
+.app-wrapper {
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
     padding: 20px;
-    border: 1px solid #ddd; /* Borda suave */
-    background-color: #fff; /* Fundo branco */
-    border-radius: 8px; /* Bordas arredondadas */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra suave */
-  }
-  
-  /* Estilos para as Imagens */
-  img {
-    max-width: 100%; /* Garante que a imagem não ultrapasse a largura da div */
-    height: auto; /* Mantém a proporção da imagem */
-    margin-bottom: 15px; /* Espaçamento abaixo da imagem */
+}
+
+/* --- Tipografia --- */
+h1, h2, h3, h4 {
+    color: var(--cor-texto-principal);
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-weight: 700;
+}
+
+h1 {
+    font-size: 2em;
+    color: var(--cor-destaque-primario);
+    text-align: center;
+    padding-bottom: 8px;
+    border-bottom: 2px dashed var(--cor-destaque-primario);
+    margin-bottom: 20px;
+}
+
+h2 {
+    font-size: 1.6em;
+    color: var(--cor-destaque-secundario);
+}
+
+h3 {
+    font-size: 1.3em;
+    border-bottom: 1px solid var(--cor-borda);
+    padding-bottom: 6px;
+    font-weight: 600;
+}
+
+p {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: var(--cor-texto-secundario);
+}
+
+/* --- Componentes Comuns --- */
+.painel {
+    background-color: var(--cor-fundo-painel);
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-borda);
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: var(--sombra-suave);
+}
+
+.hidden {
+    display: none !important;
+}
+
+.placeholder-text, .error-text {
+    width: 100%;
+    text-align: center;
+    color: var(--cor-texto-secundario);
+    padding: 12px;
+    font-style: italic;
+    background-color: var(--cor-fundo-secundario);
+    border-radius: var(--raio-borda-pequeno);
+}
+.error-text {
+    color: var(--cor-texto-principal);
+    background-color: var(--cor-erro);
+    font-weight: 600;
+    font-style: normal;
+}
+
+/* --- Formulários --- */
+form label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: var(--cor-texto-principal);
+}
+
+form input[type="text"],
+form input[type="number"],
+form input[type="email"],
+form input[type="password"],
+form input[type="date"],
+form select,
+form textarea {
+    width: 100%;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    background-color: var(--cor-fundo-secundario);
+    color: var(--cor-texto-principal);
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-borda-pequeno);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+form input[type="color"] {
+    width: 100%;
+    padding: 4px;
+    min-height: 40px;
+    margin-bottom: 12px;
+    background-color: var(--cor-fundo-secundario);
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-borda-pequeno);
+}
+
+form input:focus,
+form select:focus,
+form textarea:focus {
+    outline: none;
+    border-color: var(--cor-destaque-primario);
+    box-shadow: 0 0 0 2px rgba(245, 169, 188, 0.3);
+    background-color: #fff;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+/* --- Botões --- */
+button, .botao-principal, .botao-secundario, .botao-perigo {
+    padding: 10px 18px;
+    border: none;
+    border-radius: var(--raio-borda);
+    cursor: pointer;
+    font-size: 0.95em;
+    font-weight: 700;
+    transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+    color: var(--cor-texto-principal);
+    box-shadow: var(--sombra-suave);
+}
+button:hover, .botao-principal:hover, .botao-secundario:hover, .botao-perigo:hover {
+    filter: brightness(95%);
+    box-shadow: var(--sombra-media);
+}
+button:active, .botao-principal:active, .botao-secundario:active, .botao-perigo:active {
+    transform: scale(0.97) translateY(1px);
+    box-shadow: 0 1px 3px rgba(93, 84, 79, 0.15);
+}
+
+form button[type="submit"], .botao-principal {
+    background-color: var(--cor-destaque-primario);
+    color: white;
+}
+form button[type="submit"]:hover, .botao-principal:hover {
+    background-color: #e58ca0;
+}
+
+.botao-secundario {
+    background-color: var(--cor-destaque-secundario);
+    color: white;
+}
+.botao-secundario:hover {
+    background-color: #8cbce0;
+}
+
+.botao-perigo {
+    background-color: var(--cor-erro);
+    color: white;
+}
+.botao-perigo:hover {
+    background-color: #f0909d;
+}
+
+button:disabled, .botao-principal:disabled, .botao-secundario:disabled, .botao-perigo:disabled {
+    background-color: #e0e0e0;
+    color: #a0a0a0;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+    filter: none;
+}
+
+/* --- Navegação por Abas --- */
+.tab-navigation {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    width: 100%;
+}
+.tab-button {
+    padding: 9px 16px;
+    background-color: #fff;
+    color: var(--cor-texto-secundario);
+    border: 1px solid var(--cor-borda);
+    border-bottom: 2px solid transparent;
+    border-radius: var(--raio-borda-pequeno) var(--raio-borda-pequeno) 0 0;
+    font-weight: 600;
+}
+.tab-button:hover {
+    color: var(--cor-destaque-primario);
+    background-color: var(--cor-fundo-secundario);
+}
+.tab-button.active {
+    background-color: var(--cor-fundo-painel);
+    color: var(--cor-destaque-primario);
+    border-color: var(--cor-borda);
+    border-bottom-color: var(--cor-fundo-painel);
+    position: relative;
+    top: 1px;
+    font-weight: 700;
+}
+.tab-button:disabled {
+    background-color: #f0f0f0;
+    color: #b0b0b0;
+    border-bottom-color: transparent;
+    cursor: not-allowed;
+}
+
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+
+/* ... (O resto do seu CSS original vai aqui, sem alterações) ... */
+
+/* --- NOVOS ESTILOS PARA AUTENTICAÇÃO E LAYOUT --- */
+.app-wrapper {
+    display: none; /* COMEÇA ESCONDIDO */
+}
+
+.auth-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--cor-fundo-principal);
+    z-index: 3000;
+    display: flex; /* FICA VISÍVEL POR PADRÃO */
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.auth-box {
+    width: 100%;
+    max-width: 400px;
+    box-shadow: var(--sombra-media);
+}
+
+.auth-box form input {
+    margin-bottom: 15px;
+}
+
+.auth-box form button {
+    width: 100%;
+    padding: 12px;
+}
+
+#auth-title {
+    text-align: center;
+    color: var(--cor-destaque-primario);
+    margin-bottom: 20px;
+}
+
+.auth-toggle-link {
+    text-align: center;
+    margin-top: 15px;
+    font-size: 0.9em;
+}
+
+.auth-toggle-link a {
+    color: var(--cor-destaque-secundario);
+    text-decoration: none;
+    font-weight: 600;
+}
+.auth-toggle-link a:hover {
+    text-decoration: underline;
+}
+
+#logout-btn {
+    position: absolute;
+    top: 25px;
+    right: 25px;
+    z-index: 100;
+}
+@media (max-width: 768px) {
+    #logout-btn {
+        top: 15px;
+        right: 15px;
+        padding: 8px 12px;
+    }
+}
+
+/* --- COLE ESTE CÓDIGO EM: estilo.css --- */
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: #f0f2f5;
+    color: #333;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.app-header h1 {
+    margin: 0;
+    font-size: 1.8em;
+}
+
+.logout-button {
+    background-color: #e44d26;
+    color: white;
+    border: none;
+    padding: 10px 15px;
     border-radius: 5px;
-  }
-  
-  /* Estilos para os Parágrafos */
-  p {
-    margin-bottom: 8px; /* Espaçamento abaixo dos parágrafos */
-  }
-  
-  /* Estilos para os Spans (onde os valores são exibidos) */
-  span {
-    font-weight: bold; /* Texto em negrito */
-    color: #495057; /* Cor um pouco mais escura */
-  }
-  
-  /* Estilos para os Botões */
-  button {
-    background-color: #007bff; /* Cor de fundo azul */
-    color: #fff; /* Cor do texto branco */
-    padding: 10px 15px; /* Espaçamento interno */
-    border: none; /* Remove a borda padrão */
-    border-radius: 5px; /* Bordas arredondadas */
-    cursor: pointer; /* Muda o cursor para uma mãozinha ao passar o mouse */
-    margin-right: 10px; /* Espaçamento à direita dos botões */
-    font-size: 14px;
-    transition: background-color 0.3s ease; /* Transição suave na cor de fundo */
-  }
-  
-  button:hover {
-    background-color: #0056b3; /* Cor de fundo mais escura no hover */
-  }
-  
-  /* Estilos para o Input (Peso da Carga) */
-  input[type="number"] {
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    margin-right: 10px;
-  }
-  
-  /* Estilos para o Label do Input */
-  label {
-    margin-right: 5px;
+    cursor: pointer;
     font-weight: bold;
-  }
+}
+
+.logout-button:hover {
+    background-color: #c33b1a;
+}
+
+.card {
+    background-color: #f9f9f9;
+    border: 1px solid #eee;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.card h3 {
+    margin-top: 0;
+}
+
+.widgets-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.widget {
+    min-height: 150px;
+}
+
+/* Estilos para o Formulário de Login */
+#tela-login h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box; /* Garante que padding não afete a largura final */
+}
+
+#login-form button {
+    width: 100%;
+    padding: 12px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+}
+
+#login-form button:hover {
+    background-color: #0056b3;
+}
+
+.error-message {
+    color: #d93025;
+    text-align: center;
+    margin-bottom: 10px;
+    min-height: 1.2em;
+}

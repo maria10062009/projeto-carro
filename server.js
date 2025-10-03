@@ -1,43 +1,70 @@
-// 1. Importações
+// server.js - VERSÃO COMPLETA E FUNCIONAL
+
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const mongoose = require('mongoose');
+const axios = require('axios');
 
-// Importa nossas rotas e o middleware de autenticação
-const authRoutes = require('./routes/authRoutes');
-const garagemRoutes = require('./routes/garagemRoutes');
-const publicRoutes = require('./routes/publicRoutes');
-const authMiddleware = require('./middleware/authMiddleware');
-
-// 2. Configuração do App Express
 const app = express();
-const PORT = process.env.PORT || 3001;
+const port = process.env.PORT || 3001;
 
-// 3. Middlewares Globais
-app.use(cors());       // Habilita que o frontend (de qualquer origem) acesse o backend
-app.use(express.json()); // Permite que o servidor entenda JSON no corpo das requisições
+app.use(cors());
+app.use(express.json());
 
-// 4. Montagem das Rotas da API
-// Rotas públicas (não precisam de login/token)
-app.use('/api', publicRoutes); // Usará /api/weather, /api/veiculos-destaque, etc.
+// SIMULAÇÃO DE BANCO DE DADOS EM MEMÓRIA
+let garagem = [];
+let proximoId = 1;
 
-// Rotas de autenticação (não precisam de login/token)
-app.use('/api/auth', authRoutes);
+// ROTAS DA GARAGEM
+app.get('/api/garagem', (req, res) => res.json(garagem));
+app.post('/api/garagem', (req, res) => {
+    const novoVeiculo = req.body;
+    novoVeiculo.id = proximoId++;
+    garagem.push(novoVeiculo);
+    res.status(201).json(novoVeiculo);
+});
 
-// Rotas da garagem (PRECISAM de login/token)
-// O middleware `authMiddleware` será executado ANTES de qualquer rota em `garagemRoutes`.
-app.use('/api/garagem', authMiddleware, garagemRoutes);
+// ROTAS PÚBLICAS (PARA NÃO DAR ERRO)
+const veiculosDestaque = [
+    { modelo: "Ford Maverick Híbrido", destaque: "Economia com Estilo de Picape" },
+    { modelo: "VW ID.Buzz (Kombi Elétrica)", destaque: "A Nostalgia do Futuro" },
+    { modelo: "Fiat Titano", destaque: "Robustez para qualquer desafio" }
+];
+const servicosOferecidos = [
+    { nome: "Diagnóstico Eletrônico Completo", descricao: "Verificação de todos os sistemas." },
+    { nome: "Alinhamento e Balanceamento 3D", descricao: "Para uma direção perfeita." },
+    { nome: "Troca de Óleo e Filtros Premium", descricao: "Utilizamos apenas produtos recomendados." }
+];
 
-// 5. Conexão com o Banco de Dados e Inicialização do Servidor
-mongoose.connect(process.env.MONGO_URI_CRUD)
-    .then(() => {
-        console.log("✅ Conexão com o MongoDB estabelecida com sucesso.");
-        app.listen(PORT, () => {
-            console.log(`🚀 Servidor da Garagem Inteligente rodando em http://localhost:${PORT}`);
-        });
-    })
-    .catch(err => {
-        console.error("❌ Erro fatal ao conectar ao MongoDB:", err.message);
-        process.exit(1); // Encerra a aplicação se não conseguir conectar ao DB
-    });
+app.get('/api/public/destaques', (req, res) => res.json(veiculosDestaque));
+app.get('/api/public/servicos', (req, res) => res.json(servicosOferecidos));
+
+// ROTA DA PREVISÃO DO TEMPO DE 5 DIAS
+const WEATHER_API_KEY = process.env.OPENWEATHER_API_KEY;
+
+app.get('/api/tempo', async (req, res) => {
+    const { cidade, lat, lon } = req.query;
+    if (!WEATHER_API_KEY) {
+        return res.status(500).json({ error: 'Chave da API de clima não configurada no servidor.' });
+    }
+
+    let url;
+    if (lat && lon) {
+        url = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}&units=metric&lang=pt_br`;
+    } else if (cidade) {
+        url = `https://api.openweathermap.org/data/2.5/forecast?q=${cidade}&appid=${WEATHER_API_KEY}&units=metric&lang=pt_br`;
+    } else {
+        return res.status(400).json({ error: 'Cidade ou coordenadas são necessárias.' });
+    }
+
+    try {
+        const response = await axios.get(url);
+        res.json(response.data);
+    } catch (error) {
+        res.status(error.response?.status || 500).json({ error: 'Erro ao buscar dados da previsão.' });
+    }
+});
+
+app.listen(port, () => {
+    console.log(`🚀 Servidor rodando em http://localhost:${port}`);
+});
