@@ -1,379 +1,253 @@
-// script.js - VERSÃO FINAL, COMPLETA E CORRIGIDA
-
 document.addEventListener('DOMContentLoaded', () => {
-    'use strict';
+    'use-strict';
 
-    // --- CONSTANTES E ESTADO DA APLICAÇÃO ---
-    const API_BASE_URL = 'http://localhost:3001';
-    const GARAGEM_API_URL = `${API_BASE_URL}/api/garagem`;
-    const PUBLIC_API_URL = `${API_BASE_URL}/api/public`;
-    const WEATHER_API_URL = `${API_BASE_URL}/api/tempo`;
-
+    const API = { GARAGEM: '/api/garagem', PUBLIC: '/api/public' };
     let garagem = [];
     let veiculoSelecionado = null;
-    let fullForecastData = [];
 
-    // --- CACHE DE ELEMENTOS DO DOM ---
     const dom = {
-        authContainer: document.getElementById('auth-container'),
-        appWrapper: document.getElementById('app-wrapper'),
-        formLogin: document.getElementById('form-login'),
-        logoutBtn: document.getElementById('logout-btn'),
-        notificacoesDiv: document.getElementById('notificacoes'),
+        loginContainer: document.getElementById('login-container'),
+        appContainer: document.getElementById('app-container'),
+        loginButton: document.getElementById('login-button'),
+        logoutButton: document.getElementById('logout-button'),
+        tabNavigation: document.getElementById('tab-navigation'),
+        btnDetalhes: document.querySelector('button[data-view="detalhes"]'),
+        mainContent: document.getElementById('main-content'),
         listaVeiculosContainer: document.getElementById('listaVeiculosContainer'),
-        formAdicionarVeiculo: document.getElementById('formAdicionarVeiculo'),
-        tabNavigation: document.querySelector('.tab-navigation'),
         destaquesList: document.getElementById('destaques-list'),
         servicosList: document.getElementById('servicos-list'),
-        detalhes: {
-            titulo: document.getElementById('detalhes-titulo'),
-            conteudo: document.getElementById('detalhes-conteudo'),
-            tabButton: document.getElementById('tab-button-details')
-        },
-        weather: {
-            cityInput: document.getElementById('cityInput'),
-            fetchBtn: document.getElementById('fetchWeatherBtn'),
-            geoBtn: document.getElementById('getGeoLocationWeatherBtn'),
-            cityName: document.getElementById('weather-city-name'),
-            currentDisplay: document.getElementById('current-weather-display'),
-            forecastDisplay: document.getElementById('weather-forecast-display'),
-            filterButtons: document.querySelectorAll('.botao-filtro')
+        formAdicionarVeiculo: document.getElementById('formAdicionarVeiculo'),
+        detalhesTitulo: document.getElementById('detalhes-titulo'),
+        detalhesConteudo: document.getElementById('detalhes-conteudo'),
+        cityInput: document.getElementById('cityInput'),
+        fetchWeatherBtn: document.getElementById('fetchWeatherBtn'),
+        weatherDisplay: document.getElementById('weather-display'),
+        notificacoesDiv: document.getElementById('notificacoes')
+    };
+
+    // --- LÓGICA DE AUTENTICAÇÃO E VISIBILIDADE ---
+    const checkAuth = () => {
+        if (localStorage.getItem('garagem_token')) {
+            dom.loginContainer.classList.remove('active');
+            dom.appContainer.classList.add('active');
+            initializeApp();
+        } else {
+            dom.appContainer.classList.remove('active');
+            dom.loginContainer.classList.add('active');
+        }
+    };
+    
+    const handleLogin = () => {
+        localStorage.setItem('garagem_token', 'simulado');
+        checkAuth();
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem('garagem_token');
+        garagem = [];
+        veiculoSelecionado = null;
+        // Remove os listeners para evitar duplicação
+        removeAppListeners();
+        checkAuth();
+    };
+
+    // --- RENDERIZAÇÃO NA TELA ---
+    const renderizarGaragem = () => {
+        dom.listaVeiculosContainer.innerHTML = '';
+        if (garagem.length === 0) {
+            dom.listaVeiculosContainer.innerHTML = '<div class="info-box">Sua garagem está vazia.</div>';
+            return;
+        }
+        garagem.forEach(v => {
+            const item = document.createElement('div');
+            item.className = 'item';
+            item.dataset.id = v._id;
+            item.innerHTML = `<span><strong>${v.modelo}</strong> (${v.cor})</span><button class="item-remove-button" title="Remover">&times;</button>`;
+            dom.listaVeiculosContainer.appendChild(item);
+        });
+    };
+
+    const renderizarDetalhes = () => {
+        if (!veiculoSelecionado) {
+            dom.detalhesTitulo.textContent = 'Detalhes do Veículo';
+            dom.detalhesConteudo.innerHTML = '<div class="info-box">Selecione um veículo para ver os detalhes.</div>';
+            dom.btnDetalhes.disabled = true;
+            return;
+        }
+        dom.detalhesTitulo.textContent = `Detalhes de: ${veiculoSelecionado.modelo}`;
+        dom.detalhesConteudo.innerHTML = `<p><strong>ID:</strong> ${veiculoSelecionado._id}</p><p><strong>Modelo:</strong> ${veiculoSelecionado.modelo}</p><p><strong>Cor:</strong> ${veiculoSelecionado.cor}</p><p><strong>Tipo:</strong> ${veiculoSelecionado.tipo}</p><p><strong>Cadastrado em:</strong> ${new Date(veiculoSelecionado.createdAt).toLocaleString('pt-BR')}</p>`;
+        dom.btnDetalhes.disabled = false;
+    };
+
+    const renderizarPrevisaoTempo = (data) => {
+        const current = data.list[0];
+        const dailyForecasts = data.list.filter((v, i, a) => a.findIndex(t => (new Date(t.dt_txt).getDate() === new Date(v.dt_txt).getDate())) === i).slice(0, 5);
+        
+        dom.weatherDisplay.innerHTML = `
+            <div class="item">
+                <span>Hoje em <strong>${data.city.name}</strong>: ${Math.round(current.main.temp)}°C, ${current.weather[0].description}</span>
+            </div>
+            ${dailyForecasts.map(day => `
+                <div class="item">
+                    <span><strong>${new Date(day.dt*1000).toLocaleDateString('pt-BR', {weekday: 'long'})}:</strong> ${Math.round(day.main.temp_max)}°C / ${Math.round(day.main.temp_min)}°C</span>
+                </div>
+            `).join('')}`;
+    };
+
+    // --- BUSCA DE DADOS (FETCH) ---
+    const buscarDadosPublicos = async () => {
+        try {
+            const [destaquesRes, servicosRes] = await Promise.all([fetch(`${API.PUBLIC}/destaques`), fetch(`${API.PUBLIC}/servicos`)]);
+            
+            if (!destaquesRes.ok) throw new Error('destaques');
+            const destaques = await destaquesRes.json();
+            dom.destaquesList.innerHTML = destaques.map(d => `<div class="item"><span><strong>${d.modelo}</strong>: ${d.destaque}</span></div>`).join('');
+            
+            if (!servicosRes.ok) throw new Error('serviços');
+            const servicos = await servicosRes.json();
+            dom.servicosList.innerHTML = servicos.map(s => `<div class="item"><span><strong>${s.nome}</strong>: ${s.descricao}</span></div>`).join('');
+        } catch (err) {
+            if(err.message === 'destaques') dom.destaquesList.innerHTML = '<div class="error-box">Não foi possível carregar os destaques.</div>';
+            if(err.message === 'serviços') dom.servicosList.innerHTML = '<div class="error-box">Não foi possível carregar os serviços.</div>';
         }
     };
 
-    // --- FUNÇÕES PRINCIPAIS ---
-
-    function atualizarListaVeiculosUI() {
-        if (!dom.listaVeiculosContainer) return;
-        dom.listaVeiculosContainer.innerHTML = '';
-        if (garagem.length === 0) {
-            dom.listaVeiculosContainer.innerHTML = '<p class="placeholder-text">Sua garagem está vazia.</p>';
-            resetarDetalhes();
-            return;
-        }
-        garagem.forEach(veiculo => {
-            const veiculoDiv = document.createElement('div');
-            veiculoDiv.className = 'veiculo-item-container';
-            veiculoDiv.dataset.id = veiculo.id;
-            veiculoDiv.innerHTML = `
-                <div class="veiculo-item-content">
-                    <strong>${veiculo.modelo}</strong>
-                    <span>(${veiculo.cor}) - <em>${veiculo.tipo}</em></span>
-                </div>
-                <button class="botao-remover botao-perigo-pequeno" title="Remover veículo">X</button>
-            `;
-            dom.listaVeiculosContainer.appendChild(veiculoDiv);
-        });
-    }
-
-    function exibirDetalhes() {
-        if (!veiculoSelecionado) {
-            resetarDetalhes();
-            return;
-        }
-        dom.detalhes.titulo.textContent = `Detalhes de: ${veiculoSelecionado.modelo}`;
-        dom.detalhes.conteudo.innerHTML = `
-            <div class="detalhes-grid">
-                <p><strong>ID na Garagem:</strong> ${veiculoSelecionado.id}</p>
-                <p><strong>Modelo:</strong> ${veiculoSelecionado.modelo}</p>
-                <p><strong>Cor:</strong> ${veiculoSelecionado.cor}</p>
-                <p><strong>Tipo:</strong> ${veiculoSelecionado.tipo}</p>
-                <p><strong>Status:</strong> Pronto para uso!</p>
-            </div>
-        `;
-        dom.detalhes.tabButton.disabled = false;
-    }
-
-    function resetarDetalhes() {
-        veiculoSelecionado = null;
-        dom.detalhes.titulo.textContent = 'Selecione um veículo';
-        dom.detalhes.conteudo.innerHTML = '<p class="placeholder-text">Clique em um veículo na sua garagem para ver os detalhes aqui.</p>';
-        dom.detalhes.tabButton.disabled = true;
-    }
-    
-    // --- HANDLERS DE EVENTOS ---
-
-    function handleListaVeiculosClick(e) {
-        const container = e.target.closest('.veiculo-item-container');
-        if (!container) return;
-
-        const id = parseInt(container.dataset.id, 10);
-
-        if (e.target.classList.contains('botao-remover')) {
-            handleRemoverVeiculo(id);
-        } else {
-            handleSelecionarVeiculo(id);
-        }
-    }
-
-    function handleSelecionarVeiculo(id) {
-        veiculoSelecionado = garagem.find(v => v.id === id);
-        exibirDetalhes();
-        switchTab('details');
-    }
-
-    async function handleRemoverVeiculo(id) {
-        if (!confirm('Tem certeza que deseja remover este veículo?')) return;
-        
+    const buscarGaragem = async () => {
         try {
-            const response = await fetch(`${GARAGEM_API_URL}/${id}`, { method: 'DELETE' });
-            if (!response.ok) throw new Error(`Servidor respondeu com erro: ${response.status}`);
-            
-            garagem = garagem.filter(v => v.id !== id);
-            atualizarListaVeiculosUI();
-            adicionarNotificacao('Veículo removido com sucesso!', 'sucesso');
-
-            if (veiculoSelecionado && veiculoSelecionado.id === id) {
-                resetarDetalhes();
-                switchTab('garage');
-            }
-        } catch (error) {
-            console.error('Erro ao remover veículo:', error);
-            adicionarNotificacao('Erro ao remover o veículo.', 'erro');
+            const res = await fetch(API.GARAGEM);
+            if (!res.ok) throw new Error();
+            garagem = await res.json();
+            renderizarGaragem();
+        } catch (e) {
+            dom.listaVeiculosContainer.innerHTML = '<div class="error-box">Não foi possível carregar sua garagem.</div>';
         }
-    }
+    };
     
-    async function handleAdicionarVeiculo(e) {
+    const buscarPrevisaoTempo = async () => {
+        const cidade = dom.cityInput.value.trim();
+        if (!cidade) {
+            adicionarNotificacao("Por favor, digite uma cidade.", "erro");
+            return;
+        }
+        dom.weatherDisplay.innerHTML = '<div class="info-box">Buscando...</div>';
+        try {
+            const res = await fetch(`${API.PUBLIC}/tempo?cidade=${cidade}`);
+            const data = await res.json();
+            if(!res.ok) throw new Error(data.error || "Erro ao buscar clima.");
+            renderizarPrevisaoTempo(data);
+        } catch(err) {
+            dom.weatherDisplay.innerHTML = `<div class="error-box">Não foi possível carregar a previsão.</div>`;
+            adicionarNotificacao(err.message, "erro");
+        }
+    };
+
+    // --- MANIPULADORES DE EVENTOS (HANDLERS) ---
+    const handleTabClick = (e) => {
+        if (!e.target.matches('.tab-button') || e.target.disabled) return;
+        dom.tabNavigation.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        const viewId = `view-${e.target.dataset.view}`;
+        dom.mainContent.querySelectorAll('.view-pane').forEach(p => p.classList.remove('active'));
+        document.getElementById(viewId).classList.add('active');
+    };
+
+    const handleAdicionarVeiculo = async (e) => {
         e.preventDefault();
-        const novoVeiculo = {
-            modelo: dom.formAdicionarVeiculo.querySelector('#modeloVeiculo').value.trim(),
-            cor: dom.formAdicionarVeiculo.querySelector('#corVeiculo').value.trim(),
-            tipo: dom.formAdicionarVeiculo.querySelector('#tipoVeiculo').value
-        };
-        if (!novoVeiculo.modelo || !novoVeiculo.cor) {
-            return adicionarNotificacao('Modelo e cor são obrigatórios.', 'aviso');
-        }
+        const { modeloVeiculo, corVeiculo, tipoVeiculo } = e.target.elements;
+        const novoVeiculo = { modelo: modeloVeiculo.value.trim(), cor: corVeiculo.value.trim(), tipo: tipoVeiculo.value };
         try {
-            const response = await fetch(GARAGEM_API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(novoVeiculo)
-            });
-            if (!response.ok) throw new Error('Falha ao salvar no servidor.');
-            const veiculoCriado = await response.json();
-            garagem.push(veiculoCriado);
-            atualizarListaVeiculosUI();
-            dom.formAdicionarVeiculo.reset();
-            adicionarNotificacao('Veículo adicionado com sucesso!', 'sucesso');
-            switchTab('garage');
-        } catch (error) {
-            adicionarNotificacao('Falha ao adicionar veículo.', 'erro');
+            const res = await fetch(API.GARAGEM, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(novoVeiculo) });
+            const veiculoSalvo = await res.json();
+            if (!res.ok) throw new Error(veiculoSalvo.message);
+            garagem.push(veiculoSalvo);
+            renderizarGaragem();
+            e.target.reset();
+            adicionarNotificacao('Veículo adicionado!', 'sucesso');
+            document.querySelector('button[data-view="garagem"]').click();
+        } catch (err) {
+            adicionarNotificacao(err.message, 'erro');
         }
-    }
+    };
 
-    // --- FUNÇÕES DE SETUP E AUXILIARES ---
-    
-    function setupEventListeners() {
-        dom.formLogin.addEventListener('submit', handleLogin);
-        dom.logoutBtn.addEventListener('click', handleLogout);
-        dom.formAdicionarVeiculo.addEventListener('submit', handleAdicionarVeiculo);
-        dom.listaVeiculosContainer.addEventListener('click', handleListaVeiculosClick);
-        
-        dom.tabNavigation.addEventListener('click', (e) => {
-            if (e.target.classList.contains('tab-button') && !e.target.disabled) {
-                switchTab(e.target.id.substring('tab-button-'.length));
+    const handleAcoesGaragem = async (e) => {
+        const itemDiv = e.target.closest('.item');
+        if (!itemDiv) return;
+        const id = itemDiv.dataset.id;
+        if (e.target.matches('.item-remove-button')) {
+            if (!confirm('Deseja remover este veículo?')) return;
+            try {
+                const res = await fetch(`${API.GARAGEM}/${id}`, { method: 'DELETE' });
+                if (!res.ok) throw new Error('Falha ao remover.');
+                
+                garagem = garagem.filter(v => v._id !== id);
+                renderizarGaragem();
+                
+                if (veiculoSelecionado && veiculoSelecionado._id === id) {
+                    veiculoSelecionado = null;
+                    renderizarDetalhes();
+                    document.querySelector('button[data-view="garagem"]').click();
+                }
+                adicionarNotificacao('Veículo removido.', 'sucesso');
+            } catch (err) {
+                adicionarNotificacao(err.message, 'erro');
             }
-        });
-
-        dom.weather.fetchBtn.addEventListener('click', () => {
-            const city = dom.weather.cityInput.value.trim();
-            if (city) fetchAndDisplayWeather({ city }); else adicionarNotificacao('Por favor, digite uma cidade', 'aviso');
-        });
-
-        dom.weather.cityInput.addEventListener('keyup', (e) => {
-            if (e.key === 'Enter') dom.weather.fetchBtn.click();
-        });
-
-        dom.weather.geoBtn.addEventListener('click', () => {
-            if ('geolocation' in navigator) {
-                navigator.geolocation.getCurrentPosition(
-                    pos => fetchAndDisplayWeather({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
-                    () => adicionarNotificacao('Não foi possível obter sua localização.', 'erro')
-                );
-            } else {
-                adicionarNotificacao('Geolocalização não é suportada.', 'aviso');
-            }
-        });
-
-        dom.weather.filterButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                dom.weather.filterButtons.forEach(btn => btn.classList.remove('active'));
-                button.classList.add('active');
-                const days = button.id.includes('5') ? 5 : button.id.includes('3') ? 3 : 1;
-                renderForecast(fullForecastData.slice(0, days));
-            });
-        });
-    }
-
-    function checkAuthState() {
-        if (localStorage.getItem('garagem-token')) {
-            dom.authContainer.style.display = 'none';
-            dom.appWrapper.style.display = 'block';
-            inicializarAppPosLogin();
         } else {
-            dom.authContainer.style.display = 'flex';
-            dom.appWrapper.style.display = 'none';
+            veiculoSelecionado = garagem.find(v => v._id === id);
+            renderizarDetalhes();
+            dom.btnDetalhes.click();
         }
-    }
+    };
     
-    function switchTab(tabId) {
-        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
-        document.getElementById(`tab-pane-${tabId}`)?.classList.add('active');
-        document.getElementById(`tab-button-${tabId}`)?.classList.add('active');
-    }
-
-    async function inicializarAppPosLogin() {
-        adicionarNotificacao('Bem-vindo(a) à sua garagem!', 'sucesso');
-        resetarDetalhes();
-        switchTab('garage');
-        await Promise.all([
-            carregarDadosPublicos(),
-            carregarGaragem(),
-            fetchAndDisplayWeather({ city: 'Sao Paulo' })
-        ]);
-    }
-
-    async function carregarGaragem() {
-        try {
-            const response = await fetch(GARAGEM_API_URL);
-            if (!response.ok) throw new Error('Falha na resposta da rede.');
-            garagem = await response.json();
-            atualizarListaVeiculosUI();
-        } catch (error) {
-            adicionarNotificacao('Não foi possível buscar seus veículos.', 'erro');
+    const handleWeatherSearch = (e) => {
+        if (e.key === 'Enter' || e.type === 'click') {
+            buscarPrevisaoTempo();
         }
-    }
-    
-    async function carregarDadosPublicos() {
-        try {
-            const [destaquesRes, servicosRes] = await Promise.all([
-                fetch(`${PUBLIC_API_URL}/destaques`),
-                fetch(`${PUBLIC_API_URL}/servicos`)
-            ]);
-            const destaques = await destaquesRes.json();
-            const servicos = await servicosRes.json();
-            
-            dom.destaquesList.innerHTML = '';
-            destaques.forEach(d => {
-                dom.destaquesList.innerHTML += `
-                    <div class="destaque-card">
-                        <img src="${API_BASE_URL}${d.imagemUrl}" alt="${d.modelo}" class="destaque-imagem">
-                        <div class="destaque-info">
-                            <strong>${d.modelo}</strong>
-                            <p>${d.destaque}</p>
-                        </div>
-                    </div>
-                `;
-            });
+    };
 
-            dom.servicosList.innerHTML = '';
-            servicos.forEach(s => {
-                dom.servicosList.innerHTML += `<div class="item-card"><p><strong>${s.nome}</strong>: ${s.descricao}</p></div>`;
-            });
-        } catch (error) {
-            console.error('Erro ao carregar dados públicos:', error);
-            dom.destaquesList.innerHTML = '<p class="error-text">Falha ao carregar destaques.</p>';
-            dom.servicosList.innerHTML = '<p class="error-text">Falha ao carregar serviços.</p>';
-        }
-    }
-
-    function processForecastData(forecastList) {
-        const dailyData = {};
-        forecastList.forEach(item => {
-            const date = item.dt_txt.split(' ')[0];
-            if (!dailyData[date]) dailyData[date] = { temps: [], weathers: [], dt: item.dt };
-            dailyData[date].temps.push(item.main.temp);
-            dailyData[date].weathers.push(item.weather[0]);
-        });
-        return Object.values(dailyData).map(day => {
-            const mainWeather = day.weathers[Math.floor(day.weathers.length / 2)];
-            return { dt: day.dt, temp_max: Math.round(Math.max(...day.temps)), temp_min: Math.round(Math.min(...day.temps)), description: mainWeather.description, icon: mainWeather.icon };
-        });
-    }
-
-    function renderForecast(dailyForecasts) {
-        dom.weather.forecastDisplay.innerHTML = '';
-        if (!dailyForecasts || dailyForecasts.length === 0) {
-            return dom.weather.forecastDisplay.innerHTML = '<p class="placeholder-text">Sem previsão disponível.</p>';
-        }
-        dailyForecasts.forEach(day => {
-            const date = new Date(day.dt * 1000);
-            const dayName = date.toLocaleDateString('pt-BR', { weekday: 'short' });
-            const iconUrl = `https://openweathermap.org/img/wn/${day.icon}@2x.png`;
-            dom.weather.forecastDisplay.innerHTML += `
-                <div class="forecast-card">
-                    <p class="forecast-day">${dayName.replace('.', '')}</p>
-                    <img src="${iconUrl}" alt="${day.description}" class="forecast-icon">
-                    <p class="forecast-temp"><strong>${day.temp_max}°</strong> / ${day.temp_min}°</p>
-                </div>`;
-        });
-    }
-    
-    async function fetchAndDisplayWeather({ city, lat, lon }) {
-        dom.weather.cityName.textContent = `Carregando previsão...`;
-        dom.weather.currentDisplay.innerHTML = `<p class="placeholder-text">Buscando dados...</p>`;
-        dom.weather.forecastDisplay.innerHTML = '';
-    
-        try {
-            const url = city ? `${WEATHER_API_URL}?cidade=${city}` : `${WEATHER_API_URL}?lat=${lat}&lon=${lon}`;
-            const response = await fetch(url);
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.error || `Erro do servidor: ${response.status}`);
-            }
-            const data = await response.json();
-            if (!data.list || data.list.length === 0) throw new Error("API de clima retornou resposta vazia.");
-            
-            const currentWeather = data.list[0];
-            dom.weather.cityName.textContent = `Previsão para: ${data.city.name}`;
-            const iconUrl = `https://openweathermap.org/img/wn/${currentWeather.weather[0].icon}@2x.png`;
-            dom.weather.currentDisplay.innerHTML = `
-                <div class="weather-now">
-                    <img src="${iconUrl}" alt="${currentWeather.weather[0].description}">
-                    <div>
-                        <span class="weather-temp">${Math.round(currentWeather.main.temp)}°C</span>
-                        <span class="weather-desc">${currentWeather.weather[0].description}</span>
-                    </div>
-                </div>`;
-            
-            fullForecastData = processForecastData(data.list);
-            renderForecast(fullForecastData.slice(0, 5));
-            dom.weather.filterButtons.forEach(btn => btn.classList.remove('active'));
-            document.getElementById('filter-5-days').classList.add('active');
-        } catch (error) {
-            adicionarNotificacao(`Erro ao buscar clima: ${error.message}`, 'erro');
-            dom.weather.cityName.textContent = 'Previsão do Tempo';
-            dom.weather.currentDisplay.innerHTML = `<p class="error-text">Não foi possível carregar o clima.</p>`;
-        }
-    }
-
-    function adicionarNotificacao(mensagem, tipo = 'info', duracaoMs = 4000) {
-        const notificacoesExistentes = dom.notificacoesDiv.querySelectorAll('.notificacao');
-        notificacoesExistentes.forEach(n => n.remove());
-        const notificacao = document.createElement('div');
-        notificacao.className = `notificacao ${tipo}`;
-        notificacao.textContent = mensagem;
-        dom.notificacoesDiv.appendChild(notificacao);
-        setTimeout(() => notificacao.classList.add('show'), 10);
+    // --- FUNÇÕES UTILITÁRIAS ---
+    const adicionarNotificacao = (msg, tipo, duracao = 3000) => {
+        const el = document.createElement('div');
+        el.className = `notificacao ${tipo}`;
+        el.textContent = msg;
+        dom.notificacoesDiv.appendChild(el);
+        setTimeout(() => el.classList.add('show'), 10);
         setTimeout(() => {
-            notificacao.classList.remove('show');
-            notificacao.addEventListener('transitionend', () => notificacao.remove());
-        }, duracaoMs);
-    }
+            el.classList.remove('show');
+            el.addEventListener('transitionend', () => el.remove());
+        }, duracao);
+    };
 
-    function handleLogin(e) {
-        e.preventDefault();
-        localStorage.setItem('garagem-token', 'token-simulado-de-acesso');
-        checkAuthState();
-    }
+    // --- INICIALIZAÇÃO ---
+    const addAppListeners = () => {
+        dom.logoutButton.addEventListener('click', handleLogout);
+        dom.tabNavigation.addEventListener('click', handleTabClick);
+        dom.formAdicionarVeiculo.addEventListener('submit', handleAdicionarVeiculo);
+        dom.listaVeiculosContainer.addEventListener('click', handleAcoesGaragem);
+        dom.fetchWeatherBtn.addEventListener('click', handleWeatherSearch);
+        dom.cityInput.addEventListener('keyup', handleWeatherSearch);
+    };
 
-    function handleLogout() {
-        localStorage.removeItem('garagem-token');
-        checkAuthState();
-    }
+    const removeAppListeners = () => {
+        // Esta função ajuda a evitar listeners duplicados se o usuário deslogar e logar de novo
+        dom.logoutButton.removeEventListener('click', handleLogout);
+        dom.tabNavigation.removeEventListener('click', handleTabClick);
+        dom.formAdicionarVeiculo.removeEventListener('submit', handleAdicionarVeiculo);
+        dom.listaVeiculosContainer.removeEventListener('click', handleAcoesGaragem);
+        dom.fetchWeatherBtn.removeEventListener('click', handleWeatherSearch);
+        dom.cityInput.removeEventListener('keyup', handleWeatherSearch);
+    };
 
-    // --- INÍCIO DA EXECUÇÃO ---
-    setupEventListeners();
-    checkAuthState();
+    const initializeApp = () => {
+        addAppListeners();
+        dom.cityInput.value = 'Sao Paulo';
+        buscarGaragem();
+        buscarDadosPublicos();
+        buscarPrevisaoTempo();
+        renderizarDetalhes();
+        document.querySelector('button[data-view="garagem"]').click();
+    };
+
+    // Ponto de entrada
+    dom.loginButton.addEventListener('click', handleLogin);
+    checkAuth();
 });

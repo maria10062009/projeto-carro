@@ -1,81 +1,109 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
+:root {
+    --cor-primaria: #8a63d2; /* Roxo principal */
+    --cor-primaria-hover: #734eb0;
+    --cor-fundo-pagina: #f4f2f7; /* Fundo lilás bem claro */
+    --cor-card: #ffffff;
+    --cor-borda-card: #e9e4f0;
+    --cor-texto-principal: #4a4a4a;
+    --cor-titulo: var(--cor-primaria);
+    --cor-erro-fundo: #f7cac9;
+    --cor-erro-texto: #c77575;
+    --cor-info-fundo: #e6e0f1; /* Lilás para caixas de info */
+    --cor-info-texto: #6c5b90;
+    --cor-borda-botao: #dcd6e6;
+    --cor-borda-botao-ativo: var(--cor-primaria);
+    --fonte-principal: 'Poppins', sans-serif;
+}
+
 body {
-    font-family: 'Arial', sans-serif; /* Fonte padrão */
-    background-color: #f4f4f4; /* Cor de fundo suave */
-    margin: 0; /* Remove margens padrão */
-    padding: 0;
-    color: #333; /* Cor do texto principal */
-    line-height: 1.6; /* Espaçamento entre linhas */
-  }
-  
-  h1 {
-    text-align: center; /* Título centralizado */
-    color: #0056b3; /* Cor do título */
-    margin-top: 20px; /* Espaçamento acima do título */
-  }
-  
-  h2 {
-    color: #007bff; /* Cor dos subtítulos */
-    margin-top: 30px; /* Espaçamento acima dos subtítulos */
-    border-bottom: 2px solid #007bff; /* Linha abaixo do subtítulo */
-    padding-bottom: 5px;
-  }
-  
-  /* Estilos para as Divs dos Carros */
-  div {
-    margin-bottom: 30px; /* Espaçamento abaixo das divs */
+    font-family: var(--fonte-principal);
+    background-color: var(--cor-fundo-pagina);
+    color: var(--cor-texto-principal);
+    margin: 0;
     padding: 20px;
-    border: 1px solid #ddd; /* Borda suave */
-    background-color: #fff; /* Fundo branco */
-    border-radius: 8px; /* Bordas arredondadas */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra suave */
-  }
-  
-  /* Estilos para as Imagens */
-  img {
-    max-width: 100%; /* Garante que a imagem não ultrapasse a largura da div */
-    height: auto; /* Mantém a proporção da imagem */
-    margin-bottom: 15px; /* Espaçamento abaixo da imagem */
-    border-radius: 5px;
-  }
-  
-  /* Estilos para os Parágrafos */
-  p {
-    margin-bottom: 8px; /* Espaçamento abaixo dos parágrafos */
-  }
-  
-  /* Estilos para os Spans (onde os valores são exibidos) */
-  span {
-    font-weight: bold; /* Texto em negrito */
-    color: #495057; /* Cor um pouco mais escura */
-  }
-  
-  /* Estilos para os Botões */
-  button {
-    background-color: #007bff; /* Cor de fundo azul */
-    color: #fff; /* Cor do texto branco */
-    padding: 10px 15px; /* Espaçamento interno */
-    border: none; /* Remove a borda padrão */
-    border-radius: 5px; /* Bordas arredondadas */
-    cursor: pointer; /* Muda o cursor para uma mãozinha ao passar o mouse */
-    margin-right: 10px; /* Espaçamento à direita dos botões */
+    font-size: 15px;
+}
+
+.container { max-width: 900px; margin: 0 auto; }
+
+/* --- LOGIN --- */
+#login-container { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); justify-content: center; align-items: center; z-index: 100; }
+#login-container.active { display: flex; }
+.login-box { text-align: center; padding: 40px; }
+.login-box .submit-button { width: auto; padding: 10px 30px; }
+
+/* --- ESTRUTURA PRINCIPAL --- */
+#app-container { display: none; }
+#app-container.active { display: block; }
+
+.main-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.controls-group { display: flex; align-items: center; gap: 20px; }
+
+/* --- NAVEGAÇÃO --- */
+.tab-navigation { display: flex; gap: 10px; }
+.tab-button {
+    font-family: var(--fonte-principal);
+    background-color: var(--cor-card);
+    border: 1px solid var(--cor-borda-botao);
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
     font-size: 14px;
-    transition: background-color 0.3s ease; /* Transição suave na cor de fundo */
-  }
-  
-  button:hover {
-    background-color: #0056b3; /* Cor de fundo mais escura no hover */
-  }
-  
-  /* Estilos para o Input (Peso da Carga) */
-  input[type="number"] {
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    margin-right: 10px;
-  }
-  
-  /* Estilos para o Label do Input */
-  label {
-    margin-right: 5px;
-    font-weight: bold;
-  }
+    color: var(--cor-texto-principal);
+    transition: all 0.2s ease;
+}
+.tab-button:hover { background-color: var(--cor-fundo-pagina); border-color: #c9c1d8; }
+.tab-button.active {
+    border-color: var(--cor-borda-botao-ativo);
+    color: var(--cor-primaria);
+    font-weight: 600;
+    background-color: #f2eefe;
+}
+.tab-button:disabled { background-color: #f5f5f5; color: #ccc; cursor: not-allowed; border-color: #eee; }
+
+/* --- CONTROLES --- */
+.volume-control { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+input[type="range"] { -webkit-appearance: none; appearance: none; width: 120px; height: 5px; background: #e0e0e0; border-radius: 5px; outline: none; }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 15px; height: 15px; background: var(--cor-primaria); border-radius: 50%; cursor: pointer; }
+.logout-button { background: none; border: 1px solid var(--cor-borda-botao); color: var(--cor-primaria); border-radius: 8px; padding: 8px 12px; cursor: pointer; font-family: var(--fonte-principal); font-weight: 500; }
+.logout-button:hover { background-color: var(--cor-fundo-pagina); }
+
+/* --- CONTEÚDO --- */
+.card { background-color: var(--cor-card); border: 1px solid var(--cor-borda-card); border-radius: 12px; padding: 25px; margin-bottom: 20px; }
+.card h2 { color: var(--cor-titulo); margin: 0 0 10px 0; font-size: 1.5rem; font-weight: 600; }
+.card p { margin: 0 0 15px 0; font-size: 14px; }
+.content-box { min-height: 40px; }
+.info-box, .error-box { text-align: center; padding: 12px; border-radius: 8px; font-size: 14px; }
+.info-box { background-color: var(--cor-info-fundo); color: var(--cor-info-texto); }
+.error-box { background-color: var(--cor-erro-fundo); color: var(--cor-erro-texto); }
+.item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--cor-borda-card); cursor: pointer; transition: background-color 0.2s; }
+.item:hover { background-color: var(--cor-fundo-pagina); }
+.item:last-child { border-bottom: none; }
+.item-remove-button { background-color: #fff; border: 1px solid var(--cor-borda-botao); color: var(--cor-erro-texto); border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-weight: bold; }
+.item-remove-button:hover { background-color: var(--cor-erro-fundo); }
+
+/* --- FORMULÁRIO --- */
+.form-vertical { display: flex; flex-direction: column; gap: 15px; }
+.form-vertical label { font-weight: 500; }
+.form-vertical input, .form-vertical select { width: 100%; padding: 10px; border: 1px solid var(--cor-borda-botao); border-radius: 8px; font-family: var(--fonte-principal); box-sizing: border-box; }
+.submit-button { background-color: var(--cor-primaria); color: white; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 500; width: 100%; }
+.submit-button:hover { background-color: var(--cor-primaria-hover); }
+
+/* --- CLIMA --- */
+#weather-card { background-color: #e6e0f1; }
+.weather-input-group { display: flex; gap: 10px; margin-bottom: 15px; }
+#cityInput { flex: 1; padding: 8px; border: 1px solid var(--cor-borda-botao); border-radius: 8px; }
+.weather-button { background-color: var(--cor-primaria); color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; }
+
+/* --- UTILIDADES --- */
+.view-pane { display: none; }
+.view-pane.active { display: block; }
+footer { text-align: center; margin-top: 30px; font-size: 12px; color: #aaa; }
+#notificacoes { position: fixed; bottom: 20px; right: 20px; z-index: 1000; width: 300px; }
+.notificacao { padding: 15px; margin-top: 10px; border-radius: 8px; color: white; font-weight: 500; box-shadow: 0 2px 10px rgba(0,0,0,0.1); opacity: 0; transform: translateY(20px); transition: all 0.3s ease; }
+.notificacao.show { opacity: 1; transform: translateY(0); }
+.notificacao.sucesso { background-color: #a2e1c9; color: #407863;}
+.notificacao.erro { background-color: var(--cor-erro-fundo); color: var(--cor-erro-texto); }
+
