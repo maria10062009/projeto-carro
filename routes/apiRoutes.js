@@ -1,66 +1,81 @@
-// routes/apiRoutes.js - VERSÃO CORRIGIDA
+// routes/apiRoutes.js - VERSÃO SIMULADA (SEM BANCO DE DADOS)
 
 const express = require('express');
 const axios = require('axios');
 const router = express.Router();
-// CORREÇÃO APLICADA AQUI: O nome do arquivo importado agora é 'veiculo.js'
-const Veiculo = require('../models/veiculo.js'); 
 
-// --- Rotas do CRUD de Veículos ---
+// =========================================================================
+// SIMULAÇÃO DO BANCO DE DADOS EM MEMÓRIA
+// =========================================================================
+let garagem = []; // Nossa "garagem" que guardará os veículos
+let proximoId = 1; // Um contador para gerar IDs únicos para cada veículo
 
-// GET /api/garagem
-router.get('/garagem', async (req, res) => {
-    try {
-        const garagem = await Veiculo.find().sort({ modelo: 1 });
-        res.json(garagem);
-    } catch (err) {
-        res.status(500).json({ message: 'Erro no Servidor ao buscar veículos.' });
-    }
+
+// --- Rotas do CRUD de Veículos (Agora usando nossa lista em memória) ---
+
+// GET /api/garagem - Devolve a lista de veículos em memória
+router.get('/garagem', (req, res) => {
+    // Apenas retorna o array 'garagem' atual
+    res.json(garagem);
 });
 
-// POST /api/garagem
-router.post('/garagem', async (req, res) => {
-    try {
-        const novoVeiculo = new Veiculo(req.body);
-        await novoVeiculo.save();
-        res.status(201).json(novoVeiculo);
-    } catch (err) {
-        console.error("Erro ao criar veículo:", err.message);
-        if (err.name === 'ValidationError') {
-            return res.status(400).json({ message: 'Dados inválidos.', details: err.message });
-        }
-        res.status(400).json({ message: 'Erro ao criar veículo.', details: err.message });
-    }
+// POST /api/garagem - Adiciona um novo veículo na memória
+router.post('/garagem', (req, res) => {
+    // Pega os dados que o frontend enviou (modelo, cor, etc.)
+    const novoVeiculo = req.body;
+
+    // Adiciona um ID único e valores padrão ao novo veículo
+    novoVeiculo.id = proximoId++; // Usa o contador e depois incrementa
+    novoVeiculo.velocidade = 0;
+    novoVeiculo.ligado = false;
+    novoVeiculo.historicoManutencao = [];
+    
+    // Adiciona o novo veículo à nossa lista 'garagem'
+    garagem.push(novoVeiculo);
+    
+    // Responde com o veículo que foi criado (com seu novo ID)
+    res.status(201).json(novoVeiculo);
 });
 
-// PUT /api/garagem/:id
-router.put('/garagem/:id', async (req, res) => {
-    try {
-        const veiculoAtualizado = await Veiculo.findByIdAndUpdate(
-            req.params.id,
-            { $set: req.body },
-            { new: true, runValidators: true }
-        );
-        if (!veiculoAtualizado) return res.status(404).json({ msg: 'Veículo não encontrado' });
-        res.json(veiculoAtualizado);
-    } catch (err) {
-        res.status(500).json({ message: 'Erro no Servidor ao atualizar veículo.' });
+// PUT /api/garagem/:id - Atualiza um veículo existente
+router.put('/garagem/:id', (req, res) => {
+    const idParaAtualizar = parseInt(req.params.id, 10);
+    const dadosNovos = req.body;
+
+    const index = garagem.findIndex(v => v.id === idParaAtualizar);
+
+    if (index === -1) {
+        return res.status(404).json({ msg: 'Veículo não encontrado' });
     }
+
+    // Atualiza o veículo na lista, mantendo o ID original
+    garagem[index] = { ...garagem[index], ...dadosNovos };
+
+    res.json(garagem[index]);
 });
 
-// DELETE /api/garagem/:id
-router.delete('/garagem/:id', async (req, res) => {
-    try {
-        const veiculo = await Veiculo.findByIdAndDelete(req.params.id);
-        if (!veiculo) return res.status(404).json({ msg: 'Veículo não encontrado' });
-        res.json({ msg: 'Veículo removido com sucesso' });
-    } catch (err) {
-        res.status(500).json({ message: 'Erro no Servidor ao remover veículo.' });
+// DELETE /api/garagem/:id - Remove um veículo da memória
+router.delete('/garagem/:id', (req, res) => {
+    // Converte o ID da URL (que é texto) para um número
+    const idParaRemover = parseInt(req.params.id, 10);
+    
+    // Encontra a posição do veículo na lista
+    const index = garagem.findIndex(v => v.id === idParaRemover);
+
+    // Se não encontrar o veículo, retorna um erro 404
+    if (index === -1) {
+        return res.status(404).json({ msg: 'Veículo não encontrado' });
     }
+
+    // Remove 1 elemento da lista na posição 'index'
+    garagem.splice(index, 1);
+    
+    // Responde com uma mensagem de sucesso
+    res.json({ msg: 'Veículo removido com sucesso' });
 });
 
 
-// --- Rotas de Destaques e Serviços (Dados Estáticos) ---
+// --- Rotas de Destaques e Serviços (Dados Estáticos - NÃO PRECISAM DE MUDANÇA) ---
 const veiculosDestaque = [
     { "modelo": "Ferrari F40", "ano": 1989, "imagemUrl": "imagens/ferrari1.webp", "destaque": "O último carro aprovado pessoalmente por Enzo Ferrari." },
     { "modelo": "Scania R450", "ano": 2021, "imagemUrl": "imagens/scania1.webp", "destaque": "Projetado para longas distâncias com eficiência e conforto." },
@@ -75,7 +90,7 @@ router.get('/garagem/veiculos-destaque', (req, res) => res.json(veiculosDestaque
 router.get('/garagem/servicos-oferecidos', (req, res) => res.json(servicosOferecidos));
 
 
-// --- Rota para Previsão do Tempo ---
+// --- Rota para Previsão do Tempo (NÃO PRECISA DE MUDANÇA) ---
 router.get('/weather', async (req, res) => {
     const { city, lat, lon } = req.query;
     const apiKey = process.env.OPENWEATHER_API_KEY;

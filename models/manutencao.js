@@ -1,38 +1,33 @@
-// models/Manutencao.js
-
 const mongoose = require('mongoose');
 
+// Este arquivo define o ESQUEMA para o Mongoose.
+// Ele diz ao banco de dados como um registro de manutenção deve ser.
 const manutencaoSchema = new mongoose.Schema({
-    descricaoServico: {
-        type: String,
-        required: true,
-        trim: true
-    },
     data: {
         type: Date,
-        required: true,
-        default: Date.now // Valor padrão é a data/hora atual
+        required: true
+    },
+    tipoServico: {
+        type: String,
+        required: [true, 'O tipo de serviço é obrigatório.'],
+        trim: true
     },
     custo: {
         type: Number,
         required: true,
         min: [0, 'O custo não pode ser negativo.']
     },
-    quilometragem: {
-        type: Number,
-        min: [0, 'A quilometragem não pode ser negativa.'],
-        default: 0
-    },
-    // O campo de relacionamento com a coleção de Veículos
-    veiculo: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Veiculo', // Refere-se ao modelo 'Veiculo'
-        required: true
+    descricao: {
+        type: String,
+        trim: true
     }
 }, {
-    timestamps: true // Adiciona os campos createdAt e updatedAt automaticamente
+    // Desativa a criação de um _id para cada subdocumento de manutenção,
+    // o que pode simplificar as coisas se você não precisar referenciá-los individualmente.
+    // Se precisar editar/remover manutenções individuais, mantenha como true (padrão).
+    _id: true 
 });
 
-const Manutencao = mongoose.model('Manutencao', manutencaoSchema);
-
-module.exports = Manutencao;
+// Exportamos apenas o Schema, para que ele possa ser importado e aninhado
+// dentro do veiculoSchema.
+module.exports = manutencaoSchema;

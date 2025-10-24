@@ -1,50 +1,53 @@
-// routes/garagemRoutes.js
-
 const express = require('express');
-const router = express.Router();
-const Veiculo = require('../models/veiculoModel'); // Importa o modelo Veiculo
+const authMiddleware = require('../middleware/authMiddleware'); // Middleware de proteção
+const { Veiculo } = require('../models/veiculo');
 
-// ROTA GET: /api/garagem - Ler todos os veículos
+const router = express.Router();
+
+// A partir daqui, todas as rotas precisam de login
+router.use(authMiddleware);
+
+// GET /api/garagem - LISTA veículos DO USUÁRIO LOGADO
 router.get('/', async (req, res) => {
     try {
-        // .find({}) busca todos os documentos na coleção de veículos.
-        // Usamos .lean() para uma consulta mais rápida, pois não precisamos de todos os métodos do Mongoose no resultado.
-        const veiculos = await Veiculo.find({}).lean();
-
-        // O front-end espera o campo 'id' e o MongoDB usa '_id'. Vamos transformar.
-        const veiculosTransformados = veiculos.map(v => ({...v, id: v._id }));
-
-        res.status(200).json(veiculosTransformados);
+        const veiculos = await Veiculo.find({ owner: req.user.userId });
+        res.status(200).json(veiculos);
     } catch (error) {
-        console.error("Erro ao buscar veículos:", error);
-        res.status(500).json({ message: "Erro interno do servidor ao buscar veículos.", details: error.message });
+        res.status(500).json({ message: "Erro ao buscar veículos." });
     }
 });
 
-// ROTA POST: /api/garagem - Criar um novo veículo
+// POST /api/garagem - ADICIONA um veículo PARA O USUÁRIO LOGADO
 router.post('/', async (req, res) => {
     try {
-        // O Mongoose usará o campo _tipoClasse no req.body para decidir
-        // qual modelo (Carro, Caminhao, Esportivo) usar.
-        const novoVeiculo = new Veiculo(req.body);
-
-        // Salva o novo documento no MongoDB
-        const veiculoSalvo = await novoVeiculo.save();
-
-        // Transforma o _id para id antes de enviar de volta
-        const veiculoFormatado = { ...veiculoSalvo.toObject(), id: veiculoSalvo._id };
-
-        // Retorna o veículo salvo com status 201 (Created)
-        res.status(201).json(veiculoFormatado);
+        const { modelo, cor, tipo } = req.body;
+        const novoVeiculo = new Veiculo({
+            modelo,
+            cor,
+            tipo,
+            owner: req.user.userId // Vincula o veículo ao usuário logado
+        });
+        await novoVeiculo.save();
+        res.status(201).json(novoVeiculo);
     } catch (error) {
-        console.error("Erro ao adicionar veículo:", error);
-        // Se for um erro de validação do Mongoose
-        if (error.name === 'ValidationError') {
-            return res.status(400).json({ message: "Dados inválidos.", details: error.message });
-        }
-        res.status(500).json({ message: "Erro interno do servidor ao criar veículo.", details: error.message });
+        res.status(400).json({ message: "Dados inválidos.", details: error.message });
     }
 });
 
+// DELETE /api/garagem/:id - REMOVE um veículo DO USUÁRIO LOGADO
+router.delete('/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        // Garante que o usuário só pode deletar o próprio veículo
+        const resultado = await Veiculo.findOneAndDelete({ _id: id, owner: req.user.userId });
+
+        if (!resultado) {
+            return res.status(404).json({ message: "Veículo não encontrado ou não pertence a você." });
+        }
+        res.status(200).json({ message: "Veículo removido com sucesso." });
+    } catch (error) {
+        res.status(500).json({ message: "Erro ao remover veículo." });
+    }
+});
 
 module.exports = router;
