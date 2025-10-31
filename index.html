@@ -5,109 +5,113 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Garagem Inteligente</title>
     <link rel="stylesheet" href="estilo.css">
-    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
 
+    <div id="notificacoes"></div>
+
     <!-- TELA DE LOGIN -->
-    <div id="auth-container" class="auth-container">
-        <div class="painel auth-box">
-            <h2 id="auth-title">Login - Garagem Inteligente</h2>
-            <form id="form-login">
-                <label for="login-email">Email:</label>
-                <input type="email" id="login-email" placeholder="E-mail" autocomplete="username">
-                <label for="login-password">Senha:</label>
-                <input type="password" id="login-password" placeholder="Senha" autocomplete="current-password">
-                <button type="submit" class="botao-principal">Entrar</button>
+    <div id="login-container" class="active">
+        <div class="card login-box">
+            <h2>Garagem Inteligente</h2>
+            <p>Faça login ou registre-se para continuar.</p>
+            <form id="formLogin" class="form-vertical">
+                <input type="email" id="loginEmail" placeholder="E-mail" required>
+                <input type="password" id="loginPassword" placeholder="Senha" required>
+                <button type="submit" class="submit-button">Entrar</button>
+                <button type="button" id="btnShowRegister" class="link-button">Não tenho conta, quero me registrar</button>
+            </form>
+            <form id="formRegister" class="form-vertical" style="display: none;">
+                <input type="email" id="registerEmail" placeholder="E-mail" required>
+                <input type="password" id="registerPassword" placeholder="Senha" required>
+                <button type="submit" class="submit-button">Registrar</button>
+                <button type="button" id="btnShowLogin" class="link-button">Já tenho conta</button>
             </form>
         </div>
     </div>
 
     <!-- APLICAÇÃO PRINCIPAL -->
-    <div id="app-wrapper" class="app-wrapper">
+    <div id="app-container" class="container">
         <header class="main-header">
-            <h1>Garagem Inteligente</h1>
-            <button id="logout-btn" class="botao-perigo">Sair</button>
+            <h1>Minha Garagem Inteligente</h1>
+            <div class="controls-group">
+                <span id="welcome-user"></span>
+                <button id="logout-button" class="logout-button">Sair</button>
+            </div>
         </header>
 
-        <!-- PREVISÃO DO TEMPO -->
-        <section id="weather-forecast-container" class="painel">
-            <div class="weather-controls">
-                <input type="text" id="cityInput" placeholder="Digite uma cidade">
-                <button id="fetchWeatherBtn" class="botao-secundario">Buscar</button>
-                <button id="getGeoLocationWeatherBtn" class="botao-secundario">📍 Localização</button>
-            </div>
-            <h2 id="weather-city-name">Previsão para: Carregando...</h2>
-            <div id="current-weather-display" class="placeholder-text">Carregando tempo atual...</div>
-            <div class="weather-forecast-filter-controls">
-                <span>Ver previsão para:</span>
-                <button id="filter-5-days" class="botao-filtro active">5 Dias</button>
-                <button id="filter-3-days" class="botao-filtro">3 Dias</button>
-                <button id="filter-today" class="botao-filtro">Hoje</button>
-            </div>
-            <div id="weather-forecast-display" class="forecast-grid">
-                <p class="placeholder-text">Carregando previsão...</p>
-            </div>
-        </section>
-
-        <!-- ABAS DE NAVEGAÇÃO -->
-        <nav class="tab-navigation">
-            <button id="tab-button-garage" class="tab-button active">Minha Garagem</button>
-            <button id="tab-button-add" class="tab-button">Adicionar Veículo</button>
-            <button id="tab-button-details" class="tab-button" disabled>Detalhes do Veículo</button>
+        <nav id="tab-navigation" class="tab-navigation">
+            <button class="tab-button active" data-view="garagem">Minha Garagem</button>
+            <button class="tab-button" data-view="adicionar">Adicionar Veículo</button>
+            <button class="tab-button" data-view="destaques">Destaques & Clima</button>
+            <button class="tab-button" data-view="dicas">Dicas e Viagens</button>
         </nav>
 
-        <!-- CONTEÚDO DAS ABAS -->
-        <div id="tab-pane-garage" class="tab-pane active">
-            <section class="painel">
-                <h3>Meus Veículos</h3>
-                <div id="listaVeiculosContainer" class="veiculo-list">
-                    <p class="placeholder-text">Sua garagem está vazia.</p>
-                </div>
-            </section>
-            <section class="painel">
-                <h3>Veículos em Destaque</h3>
-                <div id="destaques-list" class="item-list"></div>
-            </section>
-            <section class="painel">
-                <h3>Nossos Serviços</h3>
-                <div id="servicos-list" class="item-list"></div>
-            </section>
-        </div>
-
-        <div id="tab-pane-add" class="tab-pane">
-            <section class="painel">
-                <h3>Adicionar Novo Veículo</h3>
-                <form id="formAdicionarVeiculo">
-                    <div class="form-grid">
-                        <div>
-                            <label for="modeloVeiculo">Modelo</label>
-                            <input type="text" id="modeloVeiculo" required>
-                        </div>
-                        <div>
-                            <label for="corVeiculo">Cor</label>
-                            <input type="text" id="corVeiculo" required>
-                        </div>
+        <main id="main-content">
+            <!-- PAINEL: MINHA GARAGEM -->
+            <div id="view-garagem" class="view-pane active">
+                <div class="garagem-layout">
+                    <div class="garagem-lista card">
+                        <h2>Meus Veículos</h2>
+                        <div id="listaVeiculosContainer" class="content-box"></div>
                     </div>
-                    <label for="tipoVeiculo">Tipo de Veículo</label>
-                    <select id="tipoVeiculo">
-                        <option value="Carro">Carro</option>
-                        <option value="Esportivo">Esportivo</option>
-                        <option value="Caminhão">Caminhão</option>
-                    </select>
-                    <button type="submit" class="botao-principal">Adicionar à Garagem</button>
-                </form>
-            </section>
-        </div>
-        
-        <div id="tab-pane-details" class="tab-pane">
-             <section class="painel">
-                <h3 id="detalhes-titulo">Selecione um veículo</h3>
-                <div id="detalhes-conteudo"><p class="placeholder-text">Clique em um veículo na sua garagem para ver os detalhes aqui.</p></div>
-             </section>
-        </div>
-        
-        <div id="notificacoes"></div>
+                    <div class="garagem-detalhes card">
+                        <h2 id="detalhes-titulo">Detalhes do Veículo</h2>
+                        <div id="detalhes-conteudo" class="content-box"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAINEL: ADICIONAR VEÍCULO -->
+            <div id="view-adicionar" class="view-pane">
+                <div class="card">
+                    <h2>Adicionar Novo Veículo</h2>
+                    <form id="formAdicionarVeiculo" class="form-vertical">
+                        <label for="modeloVeiculo">Modelo:</label>
+                        <input type="text" id="modeloVeiculo" required placeholder="Ex: Fiat Titano">
+                        <label for="corVeiculo">Cor:</label>
+                        <input type="text" id="corVeiculo" required placeholder="Ex: Vermelho">
+                         <label for="tipoVeiculo">Tipo:</label>
+                        <select id="tipoVeiculo" required>
+                            <option value="Carro">Carro</option>
+                            <option value="CarroEsportivo">Carro Esportivo</option>
+                            <option value="Caminhao">Caminhão</option>
+                        </select>
+                        <button type="submit" class="submit-button">Adicionar à Garagem</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- PAINEL: DESTAQUES & CLIMA -->
+            <div id="view-destaques" class="view-pane">
+                 <div class="card">
+                    <h2>Veículos em Destaque</h2>
+                    <div id="destaques-list" class="content-box"></div>
+                </div>
+                <div class="card" id="weather-card">
+                    <h2>Previsão do Tempo</h2>
+                    <div class="weather-input-group">
+                        <input type="text" id="cityInput" placeholder="Digite uma cidade...">
+                        <button id="fetchWeatherBtn">Buscar</button>
+                    </div>
+                    <div id="weather-display" class="content-box"></div>
+                </div>
+            </div>
+
+            <!-- PAINEL: DICAS E VIAGENS -->
+            <div id="view-dicas" class="view-pane">
+                 <div class="card">
+                    <h2>Dicas de Manutenção</h2>
+                    <div id="dicas-list" class="content-box"></div>
+                </div>
+                <div class="card">
+                    <h2>Ideias de Viagens Populares</h2>
+                    <div id="viagens-populares-list" class="content-box"></div>
+                </div>
+            </div>
+        </main>
+        <footer>Garagem Inteligente &copy; 2025</footer>
     </div>
     
     <script src="script.js"></script>
